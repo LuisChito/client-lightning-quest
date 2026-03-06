@@ -1,6 +1,5 @@
 import { Box, Container, Paper } from '@mui/material'
 import MapCanvas from '../../components/NetworkMap/MapCanvas'
-import AppFooterStatus from './components/AppFooterStatus/main'
 import AppTopBar from './components/AppTopBar/main'
 import CanvasViewportControls from './components/CanvasViewportControls/main'
 import NodeDetailsPanel from './components/NodeDetailsPanel/main'
@@ -47,8 +46,6 @@ function HomePage() {
             </Box>
             <NodeDetailsPanel />
           </Box>
-
-          <AppFooterStatus />
         </Box>
       </Paper>
     </Container>

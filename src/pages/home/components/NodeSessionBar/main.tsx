@@ -19,7 +19,8 @@ function NodeSessionBar() {
         <Stack direction="row" spacing={1} alignItems="center">
           <ArrowBackRoundedIcon fontSize="small" sx={{ color: 'text.secondary' }} />
           <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-            nodoA
+            LuiChito
+            {/* Nombre de la sesión */}
           </Typography>
           <Chip
             size="small"

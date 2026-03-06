@@ -83,7 +83,7 @@ function MapCanvas() {
 					textTransform: 'uppercase',
 				}}
 			>
-				Network Canvas Area
+				Network Area
 			</Typography>
 
 			<ReactFlow
