@@ -1,5 +1,14 @@
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded'
 import { AppBar, Box, Button, Chip, Container, IconButton, Stack, Toolbar, Typography } from '@mui/material'
+import { NavLink } from 'react-router-dom'
+
+const navButtonSx = {
+	textTransform: 'none',
+	'&.active': {
+		color: '#f7cd64',
+		backgroundColor: 'rgba(240, 180, 41, 0.12)',
+	},
+}
 
 function Header() {
 	return (
@@ -8,14 +17,26 @@ function Header() {
 				<Toolbar disableGutters className="header-toolbar">
 					<Stack direction="row" spacing={1.25} alignItems="center">
 						<Box
-							component="img"
-							src="/isotipo.png"
-							alt="Lightning Quest logo"
-							sx={{ width: 24, height: 24, objectFit: 'contain' }}
-						/>
-						<Typography variant="h6" component="h1" sx={{ fontWeight: 700, letterSpacing: 0.3 }}>
-							Lightning Game
-						</Typography>
+							component={NavLink}
+							to="/"
+							sx={{
+								display: 'inline-flex',
+								alignItems: 'center',
+								gap: 1.25,
+								textDecoration: 'none',
+								color: 'inherit',
+							}}
+						>
+							<Box
+								component="img"
+								src="/isotipo.png"
+								alt="Lightning Quest logo"
+								sx={{ width: 24, height: 24, objectFit: 'contain' }}
+							/>
+							<Typography variant="h6" component="h1" sx={{ fontWeight: 700, letterSpacing: 0.3 }}>
+								Lightning Game
+							</Typography>
+						</Box>
 						<Chip
 							size="small"
 							label="Testnet"
@@ -29,13 +50,13 @@ function Header() {
 					</Stack>
 
 					<Stack direction="row" spacing={1} alignItems="center">
-						<Button color="inherit" sx={{ textTransform: 'none' }}>
+						<Button component={NavLink} to="/nodos" color="inherit" sx={navButtonSx}>
 							Nodos
 						</Button>
-						<Button color="inherit" sx={{ textTransform: 'none' }}>
+						<Button component={NavLink} to="/canales" color="inherit" sx={navButtonSx}>
 							Canales
 						</Button>
-						<Button color="inherit" sx={{ textTransform: 'none' }}>
+						<Button component={NavLink} to="/pagos" color="inherit" sx={navButtonSx}>
 							Pagos
 						</Button>
 						<IconButton color="inherit" className="menu-button" aria-label="menu">

@@ -1,5 +1,6 @@
-import { Box, CssBaseline, ThemeProvider, createTheme } from '@mui/material'
-import Header from './components/layout/components/header'
+import { CssBaseline, ThemeProvider, createTheme } from '@mui/material'
+import { RouterProvider } from 'react-router-dom'
+import { router } from './application/routes/routers'
 import './App.css'
 
 const theme = createTheme({
@@ -26,9 +27,7 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Box className="app-shell">
-        <Header />
-      </Box>
+      <RouterProvider router={router} />
     </ThemeProvider>
   )
 }

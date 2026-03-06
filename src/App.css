@@ -22,6 +22,10 @@
   gap: 1rem;
 }
 
+.page-content {
+  padding: 1.25rem 0 2rem;
+}
+
 .menu-button {
   display: none;
 }
