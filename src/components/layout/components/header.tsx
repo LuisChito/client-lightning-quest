@@ -1,12 +1,15 @@
 import GitHubIcon from '@mui/icons-material/GitHub'
 import OpenInNewRoundedIcon from '@mui/icons-material/OpenInNewRounded'
 import LogoutIcon from '@mui/icons-material/Logout'
-import { AppBar, Box, Button, Chip, Container, IconButton, Menu, MenuItem, Stack, Toolbar, Typography, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material'
+import { AppBar, Box, Button, Container, IconButton, Menu, MenuItem, Stack, Toolbar, Typography, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material'
 import { useState } from 'react'
 import type { MouseEvent } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { lightning, background, border } from '../../../theme/colors'
-import { resetGameProgress } from '../../../utils/gameProgress'
+import { resetGameProgress } from '../../../features/missions/shared/services/missionProgress.service'
+import { useMissionStore } from '../../../features/missions/shared/store/useMissionStore'
+import { useNetworkStore as useMission1NetworkStore } from '../../../features/missions/mission1/store/useNetworkStore'
+import { useNetworkStore as useMission2NetworkStore } from '../../../features/missions/mission2/store/useNetworkStore'
 import { useGameSounds } from '../../../hooks/useGameSounds'
 import { useEffect } from 'react'
 
@@ -24,6 +27,9 @@ function Header() {
 	const [repoMenuAnchor, setRepoMenuAnchor] = useState<null | HTMLElement>(null)
 	const [openResetDialog, setOpenResetDialog] = useState(false)
 	const navigate = useNavigate()
+	const { resetProgress } = useMissionStore()
+	const { setSelectedNode: setMission1SelectedNode } = useMission1NetworkStore()
+	const { setSelectedNode: setMission2SelectedNode } = useMission2NetworkStore()
 	const { playModalClose, playClick, playSpaceEffect, playBubblePop } = useGameSounds()
 
 	// Listener para tecla Espacio cuando el modal está abierto
@@ -61,6 +67,9 @@ function Header() {
 
 	const handleConfirmReset = () => {
 		playClick()
+		resetProgress()
+		setMission1SelectedNode(null)
+		setMission2SelectedNode(null)
 		resetGameProgress()
 		setOpenResetDialog(false)
 		navigate('/')

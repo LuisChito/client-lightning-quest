@@ -1,9 +1,10 @@
-import { Box, Divider, Stack, Typography, TextField, Select, MenuItem, FormControl, InputLabel, Chip } from '@mui/material'
+import { Box, Divider, Stack, Typography, TextField, Select, MenuItem, FormControl, InputLabel, Chip, Tabs, Tab } from '@mui/material'
 import { border, background, lightning, text } from '../../../../theme/colors'
 import type { Node } from '@xyflow/react'
 import { useState, useEffect, useRef } from 'react'
 import { useReactFlow } from '@xyflow/react'
-import { useMissionStore } from '../../../../store/useMissionStore'
+import { useMissionStore } from '../../shared/store/useMissionStore'
+import InvoiceTab from '../../../../components/invoices/InvoiceTab'
 
 interface NodeDetailsPanelProps {
   node: Node | null
@@ -12,7 +13,7 @@ interface NodeDetailsPanelProps {
 function NodeDetailsPanel({ node }: NodeDetailsPanelProps) {
   // ALWAYS call all hooks first (Rules of Hooks)
   const { setNodes } = useReactFlow()
-  const { addXP, completeMission, currentMission } = useMissionStore()
+  //const { addXP, missionCounter, xp } = useMissionStore()
   const [nombre, setNombre] = useState('')
   const [balance, setBalance] = useState(0)
   const [estado, setEstado] = useState<'activo' | 'inactivo'>('activo')
@@ -26,6 +27,11 @@ function NodeDetailsPanel({ node }: NodeDetailsPanelProps) {
   // Extract node data (safe to access with optional chaining)
   const nodeLabel = (node?.data?.label as string) || 'Unknown'
   const isPlaceholder = node?.data?.isPlaceholder as boolean | undefined
+
+  const { addXP, missionCounter, xp, completedMissions } = useMissionStore()
+
+  const mission2Completed = completedMissions.includes('create-destination-and-channel')
+  const [activeTab, setActiveTab] = useState(mission2Completed ? 1 : 0)
 
   // Initialize values when node changes
   useEffect(() => {
@@ -54,13 +60,19 @@ function NodeDetailsPanel({ node }: NodeDetailsPanelProps) {
     }
   }, [node?.id, nodeLabel, isPlaceholder])
 
+  useEffect(() => {
+    if (completedMissions.includes('create-destination-and-channel')) {
+      setActiveTab(1)
+    }
+  }, [completedMissions])
+
   // Early returns AFTER all hooks
   if (!node || isPlaceholder) {
     return null
   }
 
   // Verificar si es la misión de configurar nodo
-  const isConfigureMission = currentMission?.id === 'configure-node'
+  const isConfigureMission = missionCounter === 0
 
   // Actualizar el nodo en tiempo real
   const updateNode = (updates: { nombre?: string; balance?: number; estado?: 'activo' | 'inactivo' }) => {
@@ -70,11 +82,9 @@ function NodeDetailsPanel({ node }: NodeDetailsPanelProps) {
           const newData = {
             ...n.data,
             ...updates,
+            ...(updates.nombre !== undefined ? { label: updates.nombre } : {}),
           }
-          // Actualizar label si cambia el nombre
-          if (updates.nombre !== undefined) {
-            newData.label = updates.nombre
-          }
+
           return {
             ...n,
             data: newData,
@@ -92,15 +102,8 @@ function NodeDetailsPanel({ node }: NodeDetailsPanelProps) {
     
     // Si es la misión de configurar y el nombre cambió del inicial
     if (isConfigureMission && !hasChangedNombre && newNombre !== initialNombreRef.current && newNombre.trim()) {
-      addXP(10)
+      addXP(30)
       setHasChangedNombre(true)
-      
-      // Si ya cambió el balance, completar misión
-      if (hasChangedBalance) {
-        setTimeout(() => {
-          completeMission('configure-node')
-        }, 300)
-      }
     }
   }
 
@@ -111,15 +114,8 @@ function NodeDetailsPanel({ node }: NodeDetailsPanelProps) {
     
     // Si es la misión de configurar y el balance cambió del inicial
     if (isConfigureMission && !hasChangedBalance && newBalance !== initialBalanceRef.current && newBalance > 0) {
-      addXP(15)
+      addXP(30)
       setHasChangedBalance(true)
-      
-      // Si ya cambió el nombre, completar misión
-      if (hasChangedNombre) {
-        setTimeout(() => {
-          completeMission('configure-node')
-        }, 300)
-      }
     }
   }
 
@@ -129,7 +125,7 @@ function NodeDetailsPanel({ node }: NodeDetailsPanelProps) {
   }
 
   // Debug - ver el estado de la misión
-  console.log('🎯 Current Mission:', currentMission?.id)
+  console.log('🎯 XP actual:', xp)
   console.log('✏️ Has Changed Nombre:', hasChangedNombre)
   console.log('💰 Has Changed Balance:', hasChangedBalance)
 
@@ -181,21 +177,28 @@ function NodeDetailsPanel({ node }: NodeDetailsPanelProps) {
             🎯 Misión Activa: Configurar tu Nodo
           </Typography>
           <Typography variant="caption" sx={{ color: text.secondary, display: 'block' }}>
-            {!hasChangedNombre && '1. Cambia el nombre (+10 XP) ⚡'}
-            {hasChangedNombre && !hasChangedBalance && '2. Ajusta el balance (+15 XP) ⚡'}
+            {!hasChangedNombre && '1. Cambia el nombre (+30 XP) ⚡'}
+            {hasChangedNombre && !hasChangedBalance && '2. Ajusta el balance (+30 XP) ⚡'}
             {hasChangedNombre && hasChangedBalance && '✅ ¡Misión completada!'}
           </Typography>
         </Box>
       )}
 
       <Box>
-        <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 0.25 }}>
-          Detalles del Nodo
-        </Typography>
-        <Typography variant="caption" color="text.secondary">
-          ID: {node.id}
-        </Typography>
+        <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 0.25 }}>Detalles del Nodo</Typography>
+        <Typography variant="caption" color="text.secondary">ID: {node.id}</Typography>
+        <Tabs
+          value={activeTab}
+          onChange={(_, v) => setActiveTab(v)}
+          sx={{ mt: 1, minHeight: 32, '& .MuiTab-root': { minHeight: 32, py: 0, fontSize: '0.8rem' } }}
+        >
+          <Tab label="Info" />
+          {mission2Completed && <Tab label="Pagos" />}
+        </Tabs>
       </Box>
+
+      {activeTab === 0 && (
+      <>
 
       <Divider sx={{ borderColor: border.divider }} />
 
@@ -211,7 +214,7 @@ function NodeDetailsPanel({ node }: NodeDetailsPanelProps) {
             variant="outlined"
             helperText={
               isConfigureMission && !hasChangedNombre 
-                ? '⚡ Cambia este nombre para ganar 10 XP' 
+                ? '⚡ Cambia este nombre para ganar 30 XP' 
                 : ''
             }
             sx={{
@@ -232,7 +235,7 @@ function NodeDetailsPanel({ node }: NodeDetailsPanelProps) {
           />
           {isConfigureMission && !hasChangedNombre && (
             <Chip
-              label="¡Edítame! +10 XP"
+              label="¡Edítame! +30 XP"
               size="small"
               sx={{
                 position: 'absolute',
@@ -268,7 +271,7 @@ function NodeDetailsPanel({ node }: NodeDetailsPanelProps) {
             variant="outlined"
             helperText={
               isConfigureMission && !hasChangedBalance 
-                ? `⚡ Cambia este balance para ganar 15 XP (actual: ${formatBalance(balance)} satoshis)` 
+                ? `⚡ Cambia este balance para ganar 30 XP (actual: ${formatBalance(balance)} satoshis)` 
                 : `${formatBalance(balance)} satoshis`
             }
             sx={{
@@ -289,7 +292,7 @@ function NodeDetailsPanel({ node }: NodeDetailsPanelProps) {
           />
           {isConfigureMission && !hasChangedBalance && (
             <Chip
-              label="¡Edítame! +15 XP"
+              label="¡Edítame! +30 XP"
               size="small"
               sx={{
                 position: 'absolute',
@@ -360,6 +363,10 @@ function NodeDetailsPanel({ node }: NodeDetailsPanelProps) {
           </Typography>
         </Stack>
       </Stack>
+        </>
+    )}
+
+    {activeTab === 1 && mission2Completed && <InvoiceTab />}
     </Box>
   )
 }

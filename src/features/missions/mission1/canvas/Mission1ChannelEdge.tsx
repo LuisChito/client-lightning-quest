@@ -1,8 +1,10 @@
 import { BaseEdge, EdgeLabelRenderer, type EdgeProps, getBezierPath } from '@xyflow/react'
-import { lightning, background } from '../../theme/colors'
+import { lightning, background } from '../../../../theme/colors'
 
 function ChannelEdge(props: EdgeProps) {
-	const channelLabel = (props.data as { label?: string } | undefined)?.label ?? 'canal'
+	const channelData = props.data as { label?: string; sats?: number } | undefined
+	const channelLabel = channelData?.label ?? 'canal'
+	const channelSats = channelData?.sats
 
 	const [edgePath, labelX, labelY] = getBezierPath({
 		sourceX: props.sourceX,
@@ -32,6 +34,7 @@ function ChannelEdge(props: EdgeProps) {
 					}}
 				>
 					{channelLabel}
+					{typeof channelSats === 'number' ? ` (${channelSats} sats)` : ''}
 				</div>
 			</EdgeLabelRenderer>
 		</>
