@@ -71,17 +71,6 @@ function Header() {
 								Lightning Game
 							</Typography>
 						</Box>
-						<Chip
-							size="small"
-							label="Testnet"
-							sx={{
-							borderColor: lightning.borderMedium,
-							color: lightning.dark,
-							backgroundColor: lightning.backgroundLight,
-							fontWeight: 600,
-						}}
-						variant="outlined"
-					/>
 				</Stack>
 						<Button component={NavLink} to="/game" color="inherit" sx={navButtonSx}>
 							Juego
