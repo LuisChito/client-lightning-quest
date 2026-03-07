@@ -213,7 +213,6 @@ function MapCanvasInner() {
 	// Verificar si los modales fueron completados y mostrar hint
 	const savedProgress = loadGameProgress()
 	const modalsCompleted = savedProgress?.modalsCompleted ?? false
-	const hasClickedNode = savedProgress?.hasClickedNode ?? false
 	const showDoubleClickHint = modalsCompleted && !hasCreatedNode
 
 	// Guardar progreso cuando cambien los nodos o edges
@@ -359,12 +358,10 @@ function MapCanvasInner() {
 					setShowXPNotification(false)
 				}, 2000)
 				
-				// Mostrar hint para hacer click en el nodo (solo si no se ha clickeado antes)
-				if (!hasClickedNode) {
-					setTimeout(() => {
-						setShowNodeClickHint(true)
-					}, 2500)
-				}
+				// Mostrar siempre el monito guía al crear el primer nodo.
+				setTimeout(() => {
+					setShowNodeClickHint(true)
+				}, 2500)
 			} else {
 				// Reproducir sonido de creación para nodos subsecuentes
 				playNodeCreated()
@@ -374,7 +371,7 @@ function MapCanvasInner() {
 				})
 			}
 		},
-		[screenToFlowPosition, hasCreatedNode, setNodes, setEdges, setSelectedNode, nodes, completeMission, playNodeCreated, playMissionComplete, playXPGained, hasClickedNode],
+		[screenToFlowPosition, hasCreatedNode, setNodes, setEdges, setSelectedNode, nodes, completeMission, playNodeCreated, playMissionComplete, playXPGained],
 	)
 
 	return (

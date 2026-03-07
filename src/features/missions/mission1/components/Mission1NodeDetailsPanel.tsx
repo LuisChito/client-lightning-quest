@@ -1,35 +1,24 @@
-import { Box, Divider, Stack, Typography, TextField, Select, MenuItem, FormControl, InputLabel, Chip } from '@mui/material'
-import { border, background, lightning, text } from '../../../../theme/colors'
+import { Box, Divider, Stack, Typography, TextField, Select, MenuItem, FormControl, InputLabel } from '@mui/material'
+import { border, background } from '../../../../theme/colors'
 import type { Node } from '@xyflow/react'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useReactFlow } from '@xyflow/react'
-import { useMissionStore } from '../../shared/store/useMissionStore'
 
 interface NodeDetailsPanelProps {
   node: Node | null
 }
 
 function NodeDetailsPanel({ node }: NodeDetailsPanelProps) {
-  // ALWAYS call all hooks first (Rules of Hooks)
   const { setNodes } = useReactFlow()
-  const { addXP, missionCounter, xp } = useMissionStore()
   const [nombre, setNombre] = useState('')
   const [balance, setBalance] = useState(0)
   const [estado, setEstado] = useState<'activo' | 'inactivo'>('activo')
-  
-  // Estados para rastrear cambios
-  const [hasChangedNombre, setHasChangedNombre] = useState(false)
-  const [hasChangedBalance, setHasChangedBalance] = useState(false)
-  const initialNombreRef = useRef<string>('')
-  const initialBalanceRef = useRef<number>(0)
 
   // Extract node data (safe to access with optional chaining)
   const nodeLabel = (node?.data?.label as string) || 'Unknown'
   const isPlaceholder = node?.data?.isPlaceholder as boolean | undefined
 
-  // Initialize values when node changes
   useEffect(() => {
-    // Skip if no node or placeholder
     if (!node || isPlaceholder) return
     
     const nodeData = node.data as { 
@@ -39,28 +28,16 @@ function NodeDetailsPanel({ node }: NodeDetailsPanelProps) {
     }
     
     const initialNombre = nodeData?.nombre || nodeLabel
-    const initialBalance = nodeData?.balance || 1495918
+    const initialBalance = nodeData?.balance || 0
     
     setNombre(initialNombre)
     setBalance(initialBalance)
     setEstado(nodeData?.estado || 'activo')
-    
-    // Guardar valores iniciales solo si no se han cambiado aún
-    if (!hasChangedNombre) {
-      initialNombreRef.current = initialNombre
-    }
-    if (!hasChangedBalance) {
-      initialBalanceRef.current = initialBalance
-    }
   }, [node?.id, nodeLabel, isPlaceholder])
 
-  // Early returns AFTER all hooks
   if (!node || isPlaceholder) {
     return null
   }
-
-  // Verificar si es la misión de configurar nodo
-  const isConfigureMission = missionCounter === 0
 
   // Actualizar el nodo en tiempo real
   const updateNode = (updates: { nombre?: string; balance?: number; estado?: 'activo' | 'inactivo' }) => {
@@ -83,39 +60,20 @@ function NodeDetailsPanel({ node }: NodeDetailsPanelProps) {
     )
   }
 
-  // Manejar cambio de nombre
   const handleNombreChange = (newNombre: string) => {
     setNombre(newNombre)
     updateNode({ nombre: newNombre })
-    
-    // Si es la misión de configurar y el nombre cambió del inicial
-    if (isConfigureMission && !hasChangedNombre && newNombre !== initialNombreRef.current && newNombre.trim()) {
-      addXP(30)
-      setHasChangedNombre(true)
-    }
   }
 
-  // Manejar cambio de balance
   const handleBalanceChange = (newBalance: number) => {
     setBalance(newBalance)
     updateNode({ balance: newBalance })
-    
-    // Si es la misión de configurar y el balance cambió del inicial
-    if (isConfigureMission && !hasChangedBalance && newBalance !== initialBalanceRef.current && newBalance > 0) {
-      addXP(30)
-      setHasChangedBalance(true)
-    }
   }
 
   // Formatear balance
   const formatBalance = (sats: number) => {
     return new Intl.NumberFormat('en-US').format(sats)
   }
-
-  // Debug - ver el estado de la misión
-  console.log('🎯 XP actual:', xp)
-  console.log('✏️ Has Changed Nombre:', hasChangedNombre)
-  console.log('💰 Has Changed Balance:', hasChangedBalance)
 
   return (
     <Box
@@ -132,46 +90,6 @@ function NodeDetailsPanel({ node }: NodeDetailsPanelProps) {
         gap: 2,
       }}
     >
-      {/* Banner de Misión Activa */}
-      {isConfigureMission && (
-        <Box
-          sx={{
-            p: 2,
-            borderRadius: 2,
-            background: `linear-gradient(135deg, ${lightning.primary}15, ${lightning.dark}15)`,
-            border: `2px solid ${lightning.primary}`,
-            animation: 'glow 2s ease-in-out infinite',
-            '@keyframes glow': {
-              '0%, 100%': {
-                boxShadow: `0 0 10px ${lightning.primary}40`,
-              },
-              '50%': {
-                boxShadow: `0 0 20px ${lightning.primary}60`,
-              },
-            },
-          }}
-        >
-          <Typography
-            variant="subtitle2"
-            sx={{
-              fontWeight: 800,
-              color: lightning.dark,
-              mb: 0.5,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 1,
-            }}
-          >
-            🎯 Misión Activa: Configurar tu Nodo
-          </Typography>
-          <Typography variant="caption" sx={{ color: text.secondary, display: 'block' }}>
-            {!hasChangedNombre && '1. Cambia el nombre (+10 XP) ⚡'}
-            {hasChangedNombre && !hasChangedBalance && '2. Ajusta el balance (+15 XP) ⚡'}
-            {hasChangedNombre && hasChangedBalance && '✅ ¡Misión completada!'}
-          </Typography>
-        </Box>
-      )}
-
       <Box>
         <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 0.25 }}>
           Detalles del Nodo
@@ -183,9 +101,8 @@ function NodeDetailsPanel({ node }: NodeDetailsPanelProps) {
 
       <Divider sx={{ borderColor: border.divider }} />
 
-      {/* Campos editables - Actualización en tiempo real */}
       <Stack spacing={2}>
-        <Box sx={{ position: 'relative' }}>
+        <Box>
           <TextField
             label="Nombre"
             value={nombre}
@@ -193,55 +110,11 @@ function NodeDetailsPanel({ node }: NodeDetailsPanelProps) {
             size="small"
             fullWidth
             variant="outlined"
-            helperText={
-              isConfigureMission && !hasChangedNombre 
-                ? '⚡ Cambia este nombre para ganar 10 XP' 
-                : ''
-            }
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                '& fieldset': {
-                  borderColor: isConfigureMission && !hasChangedNombre ? lightning.primary : undefined,
-                  borderWidth: isConfigureMission && !hasChangedNombre ? 2 : 1,
-                },
-                '&:hover fieldset': {
-                  borderColor: isConfigureMission && !hasChangedNombre ? lightning.primary : undefined,
-                },
-              },
-              '& .MuiFormHelperText-root': {
-                color: lightning.dark,
-                fontWeight: 700,
-              },
-            }}
+            helperText=""
           />
-          {isConfigureMission && !hasChangedNombre && (
-            <Chip
-              label="¡Edítame! +10 XP"
-              size="small"
-              sx={{
-                position: 'absolute',
-                top: -10,
-                right: 8,
-                background: `linear-gradient(135deg, ${lightning.primary}, ${lightning.dark})`,
-                color: '#fff',
-                fontWeight: 700,
-                fontSize: '0.7rem',
-                height: 22,
-                animation: 'pulse 2s ease-in-out infinite',
-                '@keyframes pulse': {
-                  '0%, 100%': {
-                    transform: 'scale(1)',
-                  },
-                  '50%': {
-                    transform: 'scale(1.1)',
-                  },
-                },
-              }}
-            />
-          )}
         </Box>
 
-        <Box sx={{ position: 'relative' }}>
+        <Box>
           <TextField
             label="Balance (sats)"
             type="number"
@@ -250,52 +123,8 @@ function NodeDetailsPanel({ node }: NodeDetailsPanelProps) {
             size="small"
             fullWidth
             variant="outlined"
-            helperText={
-              isConfigureMission && !hasChangedBalance 
-                ? `⚡ Cambia este balance para ganar 15 XP (actual: ${formatBalance(balance)} satoshis)` 
-                : `${formatBalance(balance)} satoshis`
-            }
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                '& fieldset': {
-                  borderColor: isConfigureMission && !hasChangedBalance ? lightning.primary : undefined,
-                  borderWidth: isConfigureMission && !hasChangedBalance ? 2 : 1,
-                },
-                '&:hover fieldset': {
-                  borderColor: isConfigureMission && !hasChangedBalance ? lightning.primary : undefined,
-                },
-              },
-              '& .MuiFormHelperText-root': {
-                color: isConfigureMission && !hasChangedBalance ? lightning.dark : text.secondary,
-                fontWeight: isConfigureMission && !hasChangedBalance ? 700 : 400,
-              },
-            }}
+            helperText={`${formatBalance(balance)} satoshis`}
           />
-          {isConfigureMission && !hasChangedBalance && (
-            <Chip
-              label="¡Edítame! +15 XP"
-              size="small"
-              sx={{
-                position: 'absolute',
-                top: -10,
-                right: 8,
-                background: `linear-gradient(135deg, ${lightning.primary}, ${lightning.dark})`,
-                color: '#fff',
-                fontWeight: 700,
-                fontSize: '0.7rem',
-                height: 22,
-                animation: 'pulse 2s ease-in-out infinite',
-                '@keyframes pulse': {
-                  '0%, 100%': {
-                    transform: 'scale(1)',
-                  },
-                  '50%': {
-                    transform: 'scale(1.1)',
-                  },
-                },
-              }}
-            />
-          )}
         </Box>
 
         <FormControl size="small" fullWidth>
