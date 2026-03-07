@@ -40,7 +40,7 @@ function AppTopBar() {
               fontWeight: 600,
               backgroundColor: background.secondary,
               color: lightning.dark,
-              border: `1px solid ${lightning.borderLight}`,
+              border: `1px solid ${lightning.border}`,
             }}
           />
           
@@ -52,6 +52,7 @@ function AppTopBar() {
               fontWeight: 600,
               backgroundColor: background.secondary,
               color: 'text.primary',
+              border: `1px solid ${lightning.border}`,
             }}
           />
 
@@ -65,19 +66,6 @@ function AppTopBar() {
           >
             {currentMission}
           </Typography>
-        </Stack>
-
-        {/* Botones de acción */}
-        <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ display: { xs: 'none', md: 'flex' } }}>
-          <Button size="small" variant="text" startIcon={<AddRoundedIcon />} sx={{ textTransform: 'none', color: 'text.secondary' }}>
-            Create Network
-          </Button>
-          <Button size="small" variant="text" startIcon={<CollectionsBookmarkRoundedIcon />} sx={{ textTransform: 'none', color: 'text.secondary' }}>
-            Import Network
-          </Button>
-          <Button size="small" variant="text" startIcon={<ImageRoundedIcon />} sx={{ textTransform: 'none', color: 'text.secondary' }}>
-            Manage Images
-          </Button>
         </Stack>
       </Stack>
     </Box>
