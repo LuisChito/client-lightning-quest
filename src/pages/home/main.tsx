@@ -11,6 +11,7 @@ import NodeSessionBar from './components/NodeSessionBar/main'
 import LightningNetworkAnimation from '../../components/LightningNetworkAnimation'
 import { loadGameProgress, saveGameProgress } from '../../utils/gameProgress'
 import { useNetworkStore } from '../../store/useNetworkStore'
+import { useMissionStore } from '../../store/useMissionStore'
 import { useGameSounds } from '../../hooks/useGameSounds'
 
 function HomePage() {
@@ -19,6 +20,7 @@ function HomePage() {
   const [openThirdModal, setOpenThirdModal] = useState(false)
   const [playerName, setPlayerName] = useState('')
   const { selectedNode } = useNetworkStore()
+  const { loadProgress } = useMissionStore()
   const { playClick, playModalClose, playSpaceEffect, playBubblePop } = useGameSounds()
 
   useEffect(() => {
@@ -26,18 +28,31 @@ function HomePage() {
     if (name) {
       setPlayerName(name)
       
-      // Verificar si ya completó los modales
+      // Cargar progreso del juego
       const savedProgress = loadGameProgress()
-      if (savedProgress && savedProgress.modalsCompleted) {
-        // No mostrar modales si ya los completó
-        console.log('Modales ya completados, cargando progreso...')
+      if (savedProgress) {
+        // Cargar XP y misiones completadas
+        loadProgress(savedProgress.xp || 0, savedProgress.completedMissions || [])
+        console.log('✅ Progreso cargado:', {
+          xp: savedProgress.xp,
+          misiones: savedProgress.completedMissions,
+        })
+        
+        // Verificar si ya completó los modales
+        if (savedProgress.modalsCompleted) {
+          console.log('Modales ya completados')
+        } else {
+          // Mostrar modales de bienvenida
+          playBubblePop()
+          setOpenWelcomeModal(true)
+        }
       } else {
-        // Mostrar modales de bienvenida
+        // Primera vez, mostrar modales
         playBubblePop()
         setOpenWelcomeModal(true)
       }
     }
-  }, [playBubblePop])
+  }, [playBubblePop, loadProgress])
 
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {

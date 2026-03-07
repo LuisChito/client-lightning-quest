@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { saveGameProgress } from '../utils/gameProgress'
 
 export interface Mission {
   id: string
@@ -28,6 +29,13 @@ const initialMissions: Mission[] = [
     xpReward: 75,
     completed: false,
   },
+  {
+    id: 'configure-node',
+    title: 'Misión 2: Configurar tu Nodo',
+    description: 'Selecciona tu nodo y personaliza su nombre y balance',
+    xpReward: 0, // XP se suma al editar (10 + 15 = 25 XP)
+    completed: false,
+  },
 ]
 
 export const useMissionStore = create<MissionState>((set, get) => ({
@@ -41,6 +49,15 @@ export const useMissionStore = create<MissionState>((set, get) => ({
     set((state) => {
       const newXP = state.xp + amount
       const newLevel = Math.floor(newXP / 100) + 1
+      
+      // Guardar en localStorage
+      saveGameProgress({
+        xp: newXP,
+        completedMissions: state.completedMissions,
+      })
+      
+      console.log(`✨ +${amount} XP! Total: ${newXP} XP (Nivel ${newLevel})`)
+      
       return { xp: newXP, level: newLevel }
     })
   },
@@ -50,21 +67,37 @@ export const useMissionStore = create<MissionState>((set, get) => ({
     const mission = state.missions.find((m) => m.id === missionId)
     
     if (mission && !state.completedMissions.includes(missionId)) {
-      set({
-        missions: state.missions.map((m) =>
-          m.id === missionId ? { ...m, completed: true } : m
-        ),
-        completedMissions: [...state.completedMissions, missionId],
-      })
+      // Actualizar misiones marcando como completada
+      const updatedMissions = state.missions.map((m) =>
+        m.id === missionId ? { ...m, completed: true } : m
+      )
       
-      // Agregar XP
-      state.addXP(mission.xpReward)
+      // Agregar XP (esto también guarda en localStorage)
+      if (mission.xpReward > 0) {
+        state.addXP(mission.xpReward)
+      }
       
       // Actualizar misión actual a la siguiente no completada
-      const nextMission = state.missions.find(
+      const nextMission = updatedMissions.find(
         (m) => !m.completed && m.id !== missionId
       )
-      set({ currentMission: nextMission || null })
+      
+      const newCompletedMissions = [...state.completedMissions, missionId]
+      
+      set({
+        missions: updatedMissions,
+        completedMissions: newCompletedMissions,
+        currentMission: nextMission || null,
+      })
+      
+      // Guardar en localStorage
+      saveGameProgress({
+        completedMissions: newCompletedMissions,
+        xp: state.xp,
+      })
+      
+      console.log('✅ Misión completada:', missionId)
+      console.log('🎯 Siguiente misión:', nextMission?.id || 'ninguna')
     }
   },
 
