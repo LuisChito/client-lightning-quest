@@ -9,6 +9,7 @@ import CanvasViewportControls from './components/CanvasViewportControls/main'
 import NodeDetailsPanel from './components/NodeDetailsPanel/main'
 import NodeSessionBar from './components/NodeSessionBar/main'
 import LightningNetworkAnimation from '../../components/LightningNetworkAnimation'
+import AIAssistant from '../../components/AI/AIAssistant'
 import { loadGameProgress, saveGameProgress } from '../../utils/gameProgress'
 import { useNetworkStore } from '../../store/useNetworkStore'
 import { useMissionStore } from '../../store/useMissionStore'
@@ -795,6 +796,7 @@ function HomePage() {
           </Box>
         </Box>
       </Modal>
+      <AIAssistant />
     </>
   )
 }
