@@ -1,6 +1,6 @@
 import { Box, Typography, Paper } from '@mui/material'
 import { useState, useEffect } from 'react'
-import { background, lightning, status } from '../../theme/colors'
+import { lightning, status } from '../../theme/colors'
 
 interface NodeCreationAnimationProps {
   open: boolean
@@ -61,27 +61,27 @@ function NodeCreationAnimation({ open, onComplete }: NodeCreationAnimationProps)
         top: 20,
         right: 20,
         zIndex: 999,
-        maxWidth: 380,
+        maxWidth: 400,
       }}
     >
       <Paper
-        elevation={8}
+        elevation={12}
         sx={{
-          p: 2.5,
-          borderRadius: 2,
+          p: 3,
+          borderRadius: 3,
           border: `2px solid ${isSuccess ? status.success : lightning.primary}`,
-          background: `linear-gradient(135deg, ${background.gradient1}, ${background.gradient2})`,
+          background: '#ffffff',
           boxShadow: isSuccess 
-            ? `0 0 30px ${status.success}20, 0 4px 20px rgba(0, 0, 0, 0.4)`
-            : `0 0 20px ${lightning.primary}20, 0 4px 20px rgba(0, 0, 0, 0.4)`,
-          animation: 'slideInRight 0.3s ease-out',
+            ? `0 8px 32px rgba(0, 0, 0, 0.12), 0 0 0 1px ${status.success}20, 0 0 40px ${status.success}15`
+            : `0 8px 32px rgba(0, 0, 0, 0.12), 0 0 0 1px ${lightning.primary}20, 0 0 40px ${lightning.primary}15`,
+          animation: 'slideInRight 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
           '@keyframes slideInRight': {
             '0%': {
-              transform: 'translateX(100%)',
+              transform: 'translateX(120%) scale(0.8)',
               opacity: 0,
             },
             '100%': {
-              transform: 'translateX(0)',
+              transform: 'translateX(0) scale(1)',
               opacity: 1,
             },
           },
@@ -91,20 +91,26 @@ function NodeCreationAnimation({ open, onComplete }: NodeCreationAnimationProps)
         <Box
           sx={{
             width: '100%',
-            height: 3,
-            backgroundColor: background.secondary,
-            borderRadius: 2,
-            mb: 2,
+            height: 4,
+            backgroundColor: 'rgba(0, 0, 0, 0.08)',
+            borderRadius: 3,
+            mb: 2.5,
             overflow: 'hidden',
+            position: 'relative',
           }}
         >
           <Box
             sx={{
               width: `${((currentStep + 1) / steps.length) * 100}%`,
               height: '100%',
-              backgroundColor: isSuccess ? status.success : lightning.primary,
-              transition: 'width 0.3s ease',
-              borderRadius: 2,
+              background: isSuccess 
+                ? `linear-gradient(90deg, ${status.success}, ${status.success}dd)`
+                : `linear-gradient(90deg, ${lightning.primary}, ${lightning.light})`,
+              transition: 'width 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+              borderRadius: 3,
+              boxShadow: isSuccess
+                ? `0 0 10px ${status.success}40`
+                : `0 0 10px ${lightning.primary}40`,
             }}
           />
         </Box>
@@ -113,17 +119,42 @@ function NodeCreationAnimation({ open, onComplete }: NodeCreationAnimationProps)
         <Typography
           variant="body1"
           sx={{
-            color: '#fff',
+            color: isSuccess ? status.success : 'rgba(0, 0, 0, 0.87)',
             fontWeight: isSuccess ? 700 : 600,
-            fontSize: isSuccess ? '0.95rem' : '0.9rem',
-            lineHeight: 1.5,
-            animation: 'fadeIn 0.3s ease-out',
-            '@keyframes fadeIn': {
-              '0%': { opacity: 0 },
-              '100%': { opacity: 1 },
+            fontSize: isSuccess ? '1rem' : '0.95rem',
+            lineHeight: 1.6,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1.5,
+            animation: 'fadeInUp 0.4s ease-out',
+            '@keyframes fadeInUp': {
+              '0%': { 
+                opacity: 0,
+                transform: 'translateY(10px)',
+              },
+              '100%': { 
+                opacity: 1,
+                transform: 'translateY(0)',
+              },
             },
           }}
         >
+          {isSuccess && (
+            <Box
+              component="span"
+              sx={{
+                fontSize: '1.5rem',
+                animation: 'bounceIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55)',
+                '@keyframes bounceIn': {
+                  '0%': { transform: 'scale(0)', opacity: 0 },
+                  '50%': { transform: 'scale(1.2)' },
+                  '100%': { transform: 'scale(1)', opacity: 1 },
+                },
+              }}
+            >
+              ✓
+            </Box>
+          )}
           {currentStepData?.text}
         </Typography>
 
@@ -132,28 +163,30 @@ function NodeCreationAnimation({ open, onComplete }: NodeCreationAnimationProps)
           <Box
             sx={{
               display: 'flex',
-              gap: 0.5,
-              mt: 1.5,
+              gap: 0.8,
+              mt: 2,
+              justifyContent: 'center',
             }}
           >
             {[0, 1, 2].map((index) => (
               <Box
                 key={index}
                 sx={{
-                  width: 8,
-                  height: 8,
+                  width: 10,
+                  height: 10,
                   borderRadius: '50%',
-                  backgroundColor: lightning.primary,
-                  animation: 'pulse 1.2s ease-in-out infinite',
-                  animationDelay: `${index * 0.2}s`,
-                  '@keyframes pulse': {
+                  background: `linear-gradient(135deg, ${lightning.primary}, ${lightning.light})`,
+                  animation: 'wave 1.4s ease-in-out infinite',
+                  animationDelay: `${index * 0.15}s`,
+                  boxShadow: `0 0 10px ${lightning.primary}40`,
+                  '@keyframes wave': {
                     '0%, 100%': {
                       opacity: 0.3,
-                      transform: 'scale(0.8)',
+                      transform: 'scale(0.7) translateY(0)',
                     },
                     '50%': {
                       opacity: 1,
-                      transform: 'scale(1.2)',
+                      transform: 'scale(1.3) translateY(-8px)',
                     },
                   },
                 }}

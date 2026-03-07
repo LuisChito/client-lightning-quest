@@ -26,16 +26,23 @@ interface MissionState {
 const initialMissions: Mission[] = [
   {
     id: 'create-first-node',
-    title: 'Misión 1: Crear tu Nodo',
-    description: 'Haz doble clic en el mapa para crear tu primer nodo',
+    title: 'Misión 1: Configurar tu Red',
+    description: 'Crea tu primer nodo y configúralo',
     xpReward: 40,
     completed: false,
   },
   {
-    id: 'create-destination-and-channel',
-    title: 'Misión 2: Crear Canal Entre Nodos',
-    description: 'Crea un nodo destino y abre un canal válido entre origen y destino',
-    xpReward: 75,
+    id: 'create-first-channel',
+    title: 'Misión 2: Crear Canal',
+    description: 'Abre un canal entre tus dos nodos',
+    xpReward: 100,
+    completed: false,
+  },
+  {
+    id: 'create-invoice',
+    title: 'Misión 3: Crear Invoice',
+    description: 'Crea tu primer invoice para recibir pagos',
+    xpReward: 50,
     completed: false,
   },
 ]
@@ -75,7 +82,7 @@ export const useMissionStore = create<MissionState>((set, get) => ({
         completedMissions: state.completedMissions,
       })
       
-      console.log(`✨ +${amount} XP! Misión ${newMissionCounter}, XP actual ${newXP} (Nivel ${newLevel})`)
+      console.log(`✨ +${amount} XP! Total: ${totalXP} XP (Misión ${newMissionCounter}, Nivel ${newLevel})`)
       
       return { missionCounter: newMissionCounter, xp: newXP, level: newLevel, currentMission: nextMission }
     })
@@ -85,11 +92,18 @@ export const useMissionStore = create<MissionState>((set, get) => ({
     const state = get()
     const mission = state.missions.find((m) => m.id === missionId)
     
+    console.log(`🎯 Intentando completar misión: ${missionId}`)
+    console.log(`   Misión encontrada:`, mission)
+    console.log(`   Ya completada:`, state.completedMissions.includes(missionId))
+    
     if (mission && !state.completedMissions.includes(missionId)) {
       // Actualizar misiones marcando como completada
       const updatedMissions = state.missions.map((m) =>
         m.id === missionId ? { ...m, completed: true } : m
       )
+      
+      console.log(`✅ Completando misión: ${mission.title}`)
+      console.log(`   Recompensa: +${mission.xpReward} XP`)
       
       // Agregar XP (esto también guarda en localStorage)
       if (mission.xpReward > 0) {

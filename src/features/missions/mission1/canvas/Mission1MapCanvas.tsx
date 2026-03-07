@@ -14,7 +14,7 @@ import {
 	type Node,
 	type NodeTypes,
 } from '@xyflow/react'
-import { useCallback, useState, useEffect } from 'react'
+import { useCallback, useState, useEffect, useRef } from 'react'
 import '@xyflow/react/dist/style.css'
 import { background, border, lightning, canvas } from '../../../../theme/colors'
 import ChannelEdge from './Mission1ChannelEdge'
@@ -218,6 +218,7 @@ function MapCanvasInner() {
 	const [earnedXP, setEarnedXP] = useState(0)
 	const [xpPosition, setXPPosition] = useState({ x: 0, y: 0 })
 	const { playNodeCreated, playNodeInitialization, playMissionComplete, playXPGained } = useGameSounds()
+	const previousXPRef = useRef(xp)
 	
 	// Estado para la animación de creación de nodo
 	const [showNodeCreationAnimation, setShowNodeCreationAnimation] = useState(false)
@@ -240,6 +241,31 @@ function MapCanvasInner() {
 	const modalsCompleted = savedProgress?.modalsCompleted ?? false
 	const hasClickedNode = savedProgress?.mission1?.hasClickedNode ?? false
 	const showDoubleClickHint = modalsCompleted && !hasCreatedNode
+
+	// Reproducir sonido cuando sube el XP
+	useEffect(() => {
+		if (xp > previousXPRef.current && !showXPNotification) {
+			const xpGained = xp - previousXPRef.current
+			
+			// Mostrar notificación visual de XP
+			setEarnedXP(xpGained)
+			// Posición en el centro de la pantalla
+			setXPPosition({ 
+				x: window.innerWidth / 2, 
+				y: window.innerHeight / 2 
+			})
+			setShowXPNotification(true)
+			
+			// Reproducir sonido
+			playXPGained()
+			
+			// Ocultar notificación después de 2 segundos
+			setTimeout(() => {
+				setShowXPNotification(false)
+			}, 2000)
+		}
+		previousXPRef.current = xp
+	}, [xp, playXPGained, showXPNotification])
 
 	// Guardar progreso cuando cambien los nodos o edges (específico para Mission1)
 	useEffect(() => {
@@ -301,8 +327,8 @@ function MapCanvasInner() {
 				)
 			})
 
-			if (currentMission?.id === 'create-destination-and-channel') {
-				completeMission('create-destination-and-channel')
+			if (currentMission?.id === 'create-first-channel') {
+				completeMission('create-first-channel')
 			}
 			
 			// Limpiar estados
@@ -372,22 +398,14 @@ function MapCanvasInner() {
 				// Reproducir sonido épico de inicialización
 				playNodeInitialization()
 				
-				// Completar misión y mostrar notificación después de la animación
+				// Completar misión después de la animación
 				setTimeout(() => {
 					completeMission('create-first-node')
-					setEarnedXP(40)
-					setXPPosition({ x: event.clientX, y: event.clientY })
-					setShowXPNotification(true)
+					// La notificación de XP se mostrará automáticamente por el useEffect
 					
-					// Reproducir sonidos adicionales
+					// Reproducir sonido de misión completada
 					playMissionComplete()
-					setTimeout(() => playXPGained(), 200)
 				}, 2400)
-				
-				// Ocultar notificación después de 2 segundos
-				setTimeout(() => {
-					setShowXPNotification(false)
-				}, 4400)
 				
 				// Mostrar hint para hacer click en el nodo (solo si no se ha clickeado antes)
 				if (!hasClickedNode) {

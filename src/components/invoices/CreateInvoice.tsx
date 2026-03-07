@@ -1,5 +1,5 @@
 // components/invoices/CreateInvoice.tsx
-import { Box, Stack, Typography, TextField, Button, CircularProgress } from '@mui/material'
+import { Box, Stack, Typography, TextField, Button, CircularProgress, Alert } from '@mui/material'
 import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlineRounded'
 import ErrorOutlineRoundedIcon from '@mui/icons-material/ErrorOutlineRounded'
 import { useState } from 'react'
@@ -7,15 +7,40 @@ import { border, background, lightning, text } from '../../theme/colors'
 
 const API_URL = import.meta.env.VITE_API_BASE
 
-function CreateInvoice() {
+interface CreateInvoiceProps {
+  maxAmount?: number
+}
+
+function CreateInvoice({ maxAmount }: CreateInvoiceProps) {
   const [amountSats, setAmountSats] = useState('')
   const [memo, setMemo] = useState('')
   const [invoice, setInvoice] = useState<{ payment_request: string; qr_base64: string; amount_sats: number; memo: string } | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [validationError, setValidationError] = useState('')
+
+  const handleAmountChange = (value: string) => {
+    setAmountSats(value)
+    setValidationError('')
+    
+    // Validar el monto contra la capacidad del canal
+    if (maxAmount && value) {
+      const amount = Number(value)
+      if (amount > maxAmount) {
+        setValidationError(`El monto no puede exceder la capacidad del canal (${maxAmount.toLocaleString()} sats)`)
+      }
+    }
+  }
 
   const handleCreate = async () => {
     if (!amountSats || Number(amountSats) <= 0) return
+    
+    // Validación final antes de crear
+    if (maxAmount && Number(amountSats) > maxAmount) {
+      setError(`El monto excede la capacidad del canal (máx: ${maxAmount.toLocaleString()} sats)`)
+      return
+    }
+    
     setLoading(true)
     setError('')
     try {
@@ -38,6 +63,7 @@ function CreateInvoice() {
     setAmountSats('')
     setMemo('')
     setError('')
+    setValidationError('')
   }
 
   if (invoice) {
@@ -93,15 +119,25 @@ function CreateInvoice() {
 
   return (
     <Stack spacing={2}>
+      {maxAmount && (
+        <Alert severity="info" sx={{ py: 0.5 }}>
+          <Typography variant="caption">
+            Capacidad del canal: <strong>{maxAmount.toLocaleString()} sats</strong>
+          </Typography>
+        </Alert>
+      )}
+      
       <TextField
         label="Cantidad (sats)"
         type="number"
         value={amountSats}
-        onChange={(e) => setAmountSats(e.target.value)}
+        onChange={(e) => handleAmountChange(e.target.value)}
         size="small"
         fullWidth
         variant="outlined"
         placeholder="ej. 1000"
+        error={!!validationError}
+        helperText={validationError || (maxAmount ? `Máximo: ${maxAmount.toLocaleString()} sats` : '')}
       />
       <TextField
         label="Memo (opcional)"
@@ -124,7 +160,7 @@ function CreateInvoice() {
         variant="contained"
         fullWidth
         onClick={handleCreate}
-        disabled={!amountSats || Number(amountSats) <= 0 || loading}
+        disabled={!amountSats || Number(amountSats) <= 0 || loading || !!validationError}
         sx={{
           py: 1.2,
           fontWeight: 700,

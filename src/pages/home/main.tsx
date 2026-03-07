@@ -27,10 +27,10 @@ function HomePage() {
   const [playerName, setPlayerName] = useState('')
   const { selectedNode: mission1SelectedNode } = useMission1NetworkStore()
   const { selectedNode: mission2SelectedNode } = useMission2NetworkStore()
-  const { currentMission, loadProgress } = useMissionStore()
+  const { currentMission, loadProgress, xp } = useMissionStore()
   const { playModalClose, playSpaceEffect, playBubblePop } = useGameSounds()
 
-  const isMission2Active = currentMission?.id === 'create-destination-and-channel'
+  const isMission2Active = xp >= 100 || currentMission?.id === 'create-first-channel' || currentMission?.id === 'create-invoice'
   const ActiveMapCanvas = isMission2Active ? Mission2MapCanvas : Mission1MapCanvas
   const ActiveViewportControls = isMission2Active ? Mission2ViewportControls : Mission1ViewportControls
   const ActiveNodeDetailsPanel = isMission2Active ? Mission2NodeDetailsPanel : Mission1NodeDetailsPanel

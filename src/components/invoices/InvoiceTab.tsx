@@ -10,9 +10,21 @@
     import PayInvoice from './PayInvoice'
 
     type InvoiceView = 'menu' | 'create' | 'pay'
+    type NodeRole = 'source' | 'target' | 'both' | 'none'
 
-    function InvoiceTab() {
+    interface InvoiceTabProps {
+      nodeRole: NodeRole
+      channelCapacity: number
+      nodeId: string
+      isMission3Active?: boolean
+    }
+
+    function InvoiceTab({ nodeRole, channelCapacity, nodeId, isMission3Active = false }: InvoiceTabProps) {
     const [view, setView] = useState<InvoiceView>('menu')
+    
+    // Determinar qué opciones mostrar según el rol
+    const canCreateInvoice = nodeRole === 'target' || nodeRole === 'both'
+    const canPayInvoice = nodeRole === 'source' || nodeRole === 'both'
 
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, height: '100%' }}>
@@ -43,6 +55,7 @@
                 Selecciona una acción
             </Typography>
 
+            {canCreateInvoice && (
             <Button
                 fullWidth
                 variant="outlined"
@@ -53,12 +66,23 @@
                 py: 1.5,
                 px: 2,
                 borderRadius: 2,
-                borderColor: border.medium,
+                borderColor: isMission3Active ? lightning.primary : border.medium,
+                borderWidth: isMission3Active ? 2 : 1,
                 color: text.primary,
-                backgroundColor: background.panelLight,
+                backgroundColor: isMission3Active ? `${lightning.primary}15` : background.panelLight,
                 textTransform: 'none',
                 fontWeight: 600,
                 fontSize: '0.875rem',
+                position: 'relative',
+                animation: isMission3Active ? 'pulse 2s ease-in-out infinite' : 'none',
+                '@keyframes pulse': {
+                    '0%, 100%': {
+                        boxShadow: `0 0 0 0 ${lightning.primary}40`,
+                    },
+                    '50%': {
+                        boxShadow: `0 0 0 8px ${lightning.primary}00`,
+                    },
+                },
                 '&:hover': {
                     borderColor: lightning.primary,
                     backgroundColor: `${lightning.primary}10`,
@@ -66,14 +90,38 @@
                 },
                 }}
             >
-                <Box sx={{ textAlign: 'left' }}>
+                <Box sx={{ textAlign: 'left', flex: 1 }}>
                 <Typography variant="body2" fontWeight={700}>Crear Invoice</Typography>
                 <Typography variant="caption" sx={{ color: text.secondary }}>
                     Genera una solicitud de pago
                 </Typography>
                 </Box>
+                {isMission3Active && (
+                <Box
+                    sx={{
+                        position: 'absolute',
+                        top: -8,
+                        right: -8,
+                        backgroundColor: lightning.primary,
+                        color: '#000',
+                        borderRadius: '50%',
+                        width: 24,
+                        height: 24,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '0.75rem',
+                        fontWeight: 'bold',
+                        boxShadow: `0 2px 8px ${lightning.primary}60`,
+                    }}
+                >
+                    !
+                </Box>
+                )}
             </Button>
+            )}
 
+            {canPayInvoice && (
             <Button
                 fullWidth
                 variant="outlined"
@@ -104,6 +152,13 @@
                 </Typography>
                 </Box>
             </Button>
+            )}
+            
+            {!canCreateInvoice && !canPayInvoice && (
+              <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
+                Este nodo no tiene canales activos para realizar pagos.
+              </Typography>
+            )}
             </Stack>
         )}
 
@@ -111,7 +166,7 @@
         {view === 'create' && (
         <>
             <Divider sx={{ borderColor: border.divider }} />
-            <CreateInvoice />
+            <CreateInvoice maxAmount={channelCapacity} />
         </>
         )}
 

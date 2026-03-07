@@ -66,10 +66,10 @@ export function ChannelModal({ open, onClose, onConfirm, sourceNodeName, sourceB
 					position: 'relative',
 					width: 480,
 					maxWidth: '90vw',
-					bgcolor: 'rgba(0, 0, 0, 0.95)',
+					bgcolor: '#ffffff',
 					borderRadius: 3,
 					border: `2px solid ${lightning.primary}`,
-					boxShadow: `0 12px 40px rgba(0, 0, 0, 0.8), 0 0 40px ${lightning.primary}40`,
+					boxShadow: `0 12px 40px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05)`,
 					p: 4,
 					outline: 'none',
 					animation: 'modalSlideIn 0.3s ease-out',
@@ -107,7 +107,6 @@ export function ChannelModal({ open, onClose, onConfirm, sourceNodeName, sourceB
 						fontWeight: 700,
 						mb: 1,
 						textAlign: 'center',
-						textShadow: `0 0 20px ${lightning.primary}60`,
 					}}
 				>
 					⚡ Abrir Canal
@@ -119,14 +118,14 @@ export function ChannelModal({ open, onClose, onConfirm, sourceNodeName, sourceB
 						mb: 3,
 						p: 2,
 						borderRadius: 2,
-						background: 'rgba(255, 255, 255, 0.03)',
-						border: '1px solid rgba(255, 255, 255, 0.1)',
+						background: 'rgba(0, 0, 0, 0.04)',
+						border: '1px solid rgba(0, 0, 0, 0.08)',
 					}}
 				>
 					<Typography
 						sx={{
 							fontSize: '0.85rem',
-							color: 'rgba(255, 255, 255, 0.6)',
+							color: 'rgba(0, 0, 0, 0.6)',
 							mb: 0.5,
 						}}
 					>
@@ -152,7 +151,7 @@ export function ChannelModal({ open, onClose, onConfirm, sourceNodeName, sourceB
 						<Typography
 							sx={{
 								fontSize: '0.85rem',
-								color: 'rgba(255, 255, 255, 0.6)',
+								color: 'rgba(0, 0, 0, 0.6)',
 							}}
 						>
 							Balance disponible:
@@ -160,10 +159,9 @@ export function ChannelModal({ open, onClose, onConfirm, sourceNodeName, sourceB
 						<Typography
 							sx={{
 								fontSize: '1.2rem',
-								color: '#fff',
+								color: 'rgba(0, 0, 0, 0.87)',
 								fontFamily: 'monospace',
 								fontWeight: 700,
-								textShadow: `0 0 10px ${lightning.primary}40`,
 							}}
 						>
 							{sourceBalance.toLocaleString()} sats
@@ -176,7 +174,7 @@ export function ChannelModal({ open, onClose, onConfirm, sourceNodeName, sourceB
 					<Typography
 						sx={{
 							fontSize: '0.9rem',
-							color: 'rgba(255, 255, 255, 0.8)',
+							color: 'rgba(0, 0, 0, 0.87)',
 							mb: 1.5,
 							fontWeight: 500,
 						}}
@@ -198,11 +196,11 @@ export function ChannelModal({ open, onClose, onConfirm, sourceNodeName, sourceB
 						helperText={error}
 						sx={{
 							'& .MuiOutlinedInput-root': {
-								backgroundColor: 'rgba(255, 255, 255, 0.05)',
+								backgroundColor: 'rgba(0, 0, 0, 0.04)',
 								fontSize: '1.2rem',
 								fontFamily: 'monospace',
 								'& fieldset': {
-									borderColor: 'rgba(255, 255, 255, 0.2)',
+									borderColor: 'rgba(0, 0, 0, 0.23)',
 									borderWidth: 2,
 								},
 								'&:hover fieldset': {
@@ -210,14 +208,14 @@ export function ChannelModal({ open, onClose, onConfirm, sourceNodeName, sourceB
 								},
 								'&.Mui-focused fieldset': {
 									borderColor: lightning.primary,
-									boxShadow: `0 0 20px ${lightning.primary}40`,
+									boxShadow: `0 0 0 3px ${lightning.primary}20`,
 								},
 								'&.Mui-error fieldset': {
-									borderColor: '#ff4444',
+									borderColor: '#d32f2f',
 								},
 							},
 							'& .MuiOutlinedInput-input': {
-								color: '#fff',
+								color: 'rgba(0, 0, 0, 0.87)',
 								padding: '16px',
 							},
 							'& .MuiFormHelperText-root': {
@@ -241,21 +239,23 @@ export function ChannelModal({ open, onClose, onConfirm, sourceNodeName, sourceB
 						style={{
 							padding: '12px 28px',
 							borderRadius: '10px',
-							border: '2px solid rgba(255, 255, 255, 0.2)',
+							border: '2px solid rgba(0, 0, 0, 0.23)',
 							backgroundColor: 'transparent',
-							color: 'rgba(255, 255, 255, 0.7)',
+							color: 'rgba(0, 0, 0, 0.6)',
 							fontWeight: 600,
 							fontSize: '1rem',
 							cursor: 'pointer',
 							transition: 'all 0.2s ease',
 						}}
 						onMouseEnter={(e) => {
-							e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.5)'
-							e.currentTarget.style.color = '#fff'
+							e.currentTarget.style.borderColor = 'rgba(0, 0, 0, 0.5)'
+							e.currentTarget.style.color = 'rgba(0, 0, 0, 0.87)'
+							e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.04)'
 						}}
 						onMouseLeave={(e) => {
-							e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)'
-							e.currentTarget.style.color = 'rgba(255, 255, 255, 0.7)'
+							e.currentTarget.style.borderColor = 'rgba(0, 0, 0, 0.23)'
+							e.currentTarget.style.color = 'rgba(0, 0, 0, 0.6)'
+							e.currentTarget.style.backgroundColor = 'transparent'
 						}}
 					>
 						Cancelar

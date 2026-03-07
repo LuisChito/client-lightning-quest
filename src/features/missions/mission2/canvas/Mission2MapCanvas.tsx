@@ -14,7 +14,7 @@ import {
 	type Node,
 	type NodeTypes,
 } from '@xyflow/react'
-import { useCallback, useState, useEffect } from 'react'
+import { useCallback, useState, useEffect, useRef } from 'react'
 import '@xyflow/react/dist/style.css'
 import { background, border, lightning, canvas } from '../../../../theme/colors'
 import ChannelEdge from './Mission2ChannelEdge'
@@ -93,7 +93,7 @@ const getInitialHasCreatedNode = (): boolean => {
 function MapCanvasInner() {
 	const [nodes, setNodes, onNodesChange] = useNodesState(getInitialNodes())
 	const [edges, setEdges, onEdgesChange] = useEdgesState(getInitialEdges())
-	const { screenToFlowPosition } = useReactFlow()
+	const { screenToFlowPosition, getEdges } = useReactFlow()
 	const [hasCreatedNode, setHasCreatedNode] = useState(getInitialHasCreatedNode())
 	const { setSelectedNode } = useNetworkStore()
 	const { completeMission, currentMission, xp, completedMissions } = useMissionStore()
@@ -101,6 +101,7 @@ function MapCanvasInner() {
 	const [earnedXP, setEarnedXP] = useState(0)
 	const [xpPosition, setXPPosition] = useState({ x: 0, y: 0 })
 	const { playNodeCreated, playNodeInitialization, playMissionComplete, playXPGained } = useGameSounds()
+	const previousXPRef = useRef(xp)
 	
 	// Estado para la animación de creación de nodo
 	const [showNodeCreationAnimation, setShowNodeCreationAnimation] = useState(false)
@@ -108,6 +109,10 @@ function MapCanvasInner() {
 	// Estado para mostrar secuencia educativa de canales
 	const [showChannelEducation, setShowChannelEducation] = useState(false)
 	const [educationStep, setEducationStep] = useState(0)
+	
+	// Estado para mostrar educación de invoices
+	const [showInvoiceEducation, setShowInvoiceEducation] = useState(false)
+	const invoiceEducationShownRef = useRef(false)
 	
 	// Estado para el modal de creación de canal
 	const [showChannelModal, setShowChannelModal] = useState(false)
@@ -126,6 +131,39 @@ function MapCanvasInner() {
 	const userNodesCount = nodes.filter(n => !n.data?.isPlaceholder).length
 	// Mostrar hint solo si tiene menos de 2 nodos del usuario
 	const showDoubleClickHint = modalsCompleted && userNodesCount < 2
+
+	// Reproducir sonido cuando sube el XP
+	useEffect(() => {
+		if (xp > previousXPRef.current && !showXPNotification) {
+			const xpGained = xp - previousXPRef.current
+			
+			// Mostrar notificación visual de XP
+			setEarnedXP(xpGained)
+			// Posición en el centro de la pantalla
+			setXPPosition({ 
+				x: window.innerWidth / 2, 
+				y: window.innerHeight / 2 
+			})
+			setShowXPNotification(true)
+			
+			// Reproducir sonido
+			playXPGained()
+			
+			// Ocultar notificación después de 2 segundos
+			setTimeout(() => {
+				setShowXPNotification(false)
+			}, 2000)
+		}
+		previousXPRef.current = xp
+	}, [xp, playXPGained, showXPNotification])
+
+	// Mostrar educación de invoices cuando se llega a 200 XP (Misión 3)
+	useEffect(() => {
+		if (xp >= 200 && !invoiceEducationShownRef.current && currentMission?.id === 'create-invoice') {
+			setShowInvoiceEducation(true)
+			invoiceEducationShownRef.current = true
+		}
+	}, [xp, currentMission])
 
 	// Guardar progreso cuando cambien los nodos o edges (específico para Mission2)
 	useEffect(() => {
@@ -173,6 +211,9 @@ const handleChannelConfirm = useCallback(
   (channelSats: number) => {
     if (!pendingConnection) return
 
+    const currentEdges = getEdges()
+    const isFirstChannel = currentEdges.length === 0
+
     setEdges((currentEdges) => {
       const channelNumber = getNextChannelNumber(currentEdges)
       return addEdge(
@@ -180,34 +221,30 @@ const handleChannelConfirm = useCallback(
           ...pendingConnection,
           id: `channel-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
           type: 'channelEdge',
-          data: { label: `canal${channelNumber}`, sats: channelSats },
+          data: { label: `canal${channelNumber}`, sats: channelSats, capacity: channelSats },
         },
         currentEdges,
       )
     })
-
-    if (currentMission?.id === 'create-destination-and-channel') {
-      completeMission('create-destination-and-channel')
-
-      // Notificación visual de XP
-      setEarnedXP(75)
-      setXPPosition({ x: window.innerWidth / 2, y: window.innerHeight / 2 })
-      setShowXPNotification(true)
-
-      // Sonidos
-      playMissionComplete()
-      setTimeout(() => playXPGained(), 200)
-
-      // Ocultar notificación después de 2 segundos
-      setTimeout(() => setShowXPNotification(false), 4400)
+    
+    // Completar misión y dar +70 XP al crear el primer canal
+    if (isFirstChannel && !completedMissions.includes('create-first-channel')) {
+      console.log('🎉 Primer canal creado! Completando misión...')
+      // Esperar un momento antes de mostrar la siguiente misión
+      setTimeout(() => {
+        completeMission('create-first-channel')
+        playMissionComplete()
+      }, 2500)
     }
     
     // Limpiar estados
     setPendingConnection(null)
     setModalSourceNode(null)
   },
-  [pendingConnection, setEdges, currentMission, completeMission, playMissionComplete, playXPGained],
+  [pendingConnection, setEdges, getEdges, completedMissions, completeMission, playMissionComplete],
 )
+
+
 
 	const onNodeClick = useCallback(
 		(_event: React.MouseEvent, node: Node) => {
@@ -305,22 +342,11 @@ const handleChannelConfirm = useCallback(
 				// Reproducir sonido épico de inicialización
 				playNodeInitialization()
 				
-				// Completar misión y mostrar notificación después de la animación
+				// Completar misión después de la animación
 				setTimeout(() => {
 					completeMission('create-first-node')
-					setEarnedXP(40)
-					setXPPosition({ x: event.clientX, y: event.clientY })
-					setShowXPNotification(true)
-					
-					// Reproducir sonidos adicionales
 					playMissionComplete()
-					setTimeout(() => playXPGained(), 200)
 				}, 2400)
-				
-				// Ocultar notificación después de 2 segundos
-				setTimeout(() => {
-					setShowXPNotification(false)
-				}, 4400)
 				
 				// Mostrar hint para hacer click en el nodo (solo si no se ha clickeado antes)
 				if (!hasClickedNode) {
@@ -383,9 +409,9 @@ const handleChannelConfirm = useCallback(
 						sx={{
 							p: 3,
 							borderRadius: 2,
-							border: `2px solid ${lightning.primary}`,
-							backgroundColor: 'rgba(0, 0, 0, 0.95)',
-							boxShadow: `0 8px 32px rgba(0, 0, 0, 0.6), 0 0 20px ${lightning.primary}40`,
+							backgroundColor: '#ffffff',
+							border: '1px solid rgba(0, 0, 0, 0.1)',
+							boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
 						}}
 					>
 						{/* Paso 0: Introducción */}
@@ -405,7 +431,7 @@ const handleChannelConfirm = useCallback(
 								<Typography
 									variant="body2"
 									sx={{
-										color: 'rgba(255, 255, 255, 0.9)',
+										color: 'rgba(0, 0, 0, 0.87)',
 										lineHeight: 1.8,
 										mb: 1.5,
 									}}
@@ -415,7 +441,7 @@ const handleChannelConfirm = useCallback(
 								<Typography
 									variant="body2"
 									sx={{
-										color: 'rgba(255, 255, 255, 0.85)',
+										color: 'rgba(0, 0, 0, 0.8)',
 										lineHeight: 1.8,
 									}}
 								>
@@ -441,7 +467,7 @@ const handleChannelConfirm = useCallback(
 								<Typography
 									variant="body2"
 									sx={{
-										color: 'rgba(255, 255, 255, 0.9)',
+										color: 'rgba(0, 0, 0, 0.87)',
 										lineHeight: 1.8,
 										mb: 2.5,
 									}}
@@ -452,8 +478,8 @@ const handleChannelConfirm = useCallback(
 									sx={{
 										p: 3,
 										borderRadius: 2,
-										backgroundColor: 'rgba(0, 0, 0, 0.4)',
-										border: '1px solid rgba(255, 255, 255, 0.1)',
+										backgroundColor: 'rgba(0, 0, 0, 0.03)',
+										border: '1px solid rgba(0, 0, 0, 0.1)',
 										mb: 2,
 										position: 'relative',
 										overflow: 'hidden',
@@ -653,7 +679,7 @@ const handleChannelConfirm = useCallback(
 								<Typography
 									variant="body2"
 									sx={{
-										color: 'rgba(255, 255, 255, 0.7)',
+										color: 'rgba(0, 0, 0, 0.7)',
 										lineHeight: 1.6,
 										fontSize: '0.85rem',
 										textAlign: 'center',
@@ -681,7 +707,7 @@ const handleChannelConfirm = useCallback(
 								<Typography
 									variant="body2"
 									sx={{
-										color: 'rgba(255, 255, 255, 0.9)',
+										color: 'rgba(0, 0, 0, 0.87)',
 										lineHeight: 1.8,
 										mb: 2.5,
 									}}
@@ -740,7 +766,7 @@ const handleChannelConfirm = useCallback(
 										<Typography
 											sx={{
 												fontSize: '1.5rem',
-												color: 'rgba(255, 255, 255, 0.3)',
+												color: 'rgba(0, 0, 0, 0.3)',
 											}}
 										>
 											→
@@ -760,7 +786,7 @@ const handleChannelConfirm = useCallback(
 												sx={{
 													fontFamily: 'monospace',
 													fontSize: '1.3rem',
-													color: 'rgba(255, 255, 255, 0.5)',
+													color: 'rgba(0, 0, 0, 0.5)',
 													fontWeight: 700,
 												}}
 											>
@@ -776,8 +802,8 @@ const handleChannelConfirm = useCallback(
 											height: 40,
 											borderRadius: 2,
 											overflow: 'hidden',
-											backgroundColor: 'rgba(255, 255, 255, 0.05)',
-											border: '2px solid rgba(255, 255, 255, 0.1)',
+											backgroundColor: 'rgba(0, 0, 0, 0.05)',
+											border: '2px solid rgba(0, 0, 0, 0.1)',
 										}}
 									>
 										{/* Lado de origen (100%) */}
@@ -867,7 +893,7 @@ const handleChannelConfirm = useCallback(
 								<Typography
 									variant="body2"
 									sx={{
-										color: 'rgba(255, 255, 255, 0.9)',
+										color: 'rgba(0, 0, 0, 0.87)',
 										lineHeight: 1.8,
 										mb: 2,
 									}}
@@ -877,7 +903,7 @@ const handleChannelConfirm = useCallback(
 								<Typography
 									variant="body2"
 									sx={{
-										color: 'rgba(255, 255, 255, 0.7)',
+										color: 'rgba(0, 0, 0, 0.7)',
 										lineHeight: 1.6,
 										fontSize: '0.85rem',
 										fontStyle: 'italic',
@@ -973,6 +999,101 @@ const handleChannelConfirm = useCallback(
 									</button>
 								)}
 							</Box>
+						</Box>
+					</Box>
+				</Box>
+			)}
+
+			{/* Modal educativo de invoices cuando llegas a 200 XP */}
+			{showInvoiceEducation && (
+				<Box
+					sx={{
+						position: 'absolute',
+						top: '50%',
+						left: 30,
+						transform: 'translateY(-50%)',
+						zIndex: 10,
+						maxWidth: 400,
+						animation: 'slideInLeft 0.5s ease-out',
+						'@keyframes slideInLeft': {
+							'0%': {
+								transform: 'translateY(-50%) translateX(-100%)',
+								opacity: 0,
+							},
+							'100%': {
+								transform: 'translateY(-50%) translateX(0)',
+								opacity: 1,
+							},
+						},
+					}}
+				>
+					<Box
+						sx={{
+							p: 3,
+							borderRadius: 2,
+							backgroundColor: '#ffffff',
+							border: '1px solid rgba(0, 0, 0, 0.1)',
+							boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+						}}
+					>
+						<Typography
+							variant="h6"
+							sx={{
+								color: lightning.primary,
+								fontWeight: 700,
+								mb: 2,
+								fontSize: '1.1rem',
+							}}
+						>
+							¡Misión 3: Crear Invoice!
+						</Typography>
+						<Typography
+							variant="body2"
+							sx={{
+								color: 'rgba(0, 0, 0, 0.87)',
+								lineHeight: 1.8,
+								mb: 2,
+							}}
+						>
+							Ahora puedes crear tu primer invoice para recibir pagos.
+						</Typography>
+						<Typography
+							variant="body2"
+							sx={{
+								color: 'rgba(0, 0, 0, 0.8)',
+								lineHeight: 1.8,
+								mb: 2.5,
+								fontWeight: 600,
+							}}
+						>
+							👉 Presiona el nodo destino y selecciona "Crear Invoice"
+						</Typography>
+						<Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+							<button
+								onClick={() => setShowInvoiceEducation(false)}
+								style={{
+									padding: '10px 24px',
+									borderRadius: '8px',
+									border: 'none',
+									backgroundColor: lightning.primary,
+									color: '#000',
+									fontWeight: 700,
+									fontSize: '0.9rem',
+									cursor: 'pointer',
+									transition: 'all 0.2s ease',
+									boxShadow: `0 4px 12px ${lightning.primary}40`,
+								}}
+								onMouseEnter={(e) => {
+									e.currentTarget.style.transform = 'translateY(-2px)';
+									e.currentTarget.style.boxShadow = `0 6px 16px ${lightning.primary}60`;
+								}}
+								onMouseLeave={(e) => {
+									e.currentTarget.style.transform = 'translateY(0)';
+									e.currentTarget.style.boxShadow = `0 4px 12px ${lightning.primary}40`;
+								}}
+							>
+								Entendido
+							</button>
 						</Box>
 					</Box>
 				</Box>

@@ -1,18 +1,30 @@
-import { Box, Divider, Stack, Typography, TextField, Select, MenuItem, FormControl, InputLabel, Modal, Button, IconButton } from '@mui/material'
+import { Box, Divider, Stack, Typography, TextField, Select, MenuItem, FormControl, InputLabel, Modal, Button, IconButton, Tabs, Tab } from '@mui/material'
 import CloseIcon from '@mui/icons-material/Close'
-import { border, background } from '../../../../theme/colors'
+import { border, background, lightning, text } from '../../../../theme/colors'
 import type { Node } from '@xyflow/react'
 import { useState, useEffect, useRef } from 'react'
 import { useReactFlow } from '@xyflow/react'
 import { useMissionStore } from '../../shared/store/useMissionStore'
+import { useGameSounds } from '../../../../hooks/useGameSounds'
+import InvoiceTab from '../../../../components/invoices/InvoiceTab'
 
 interface NodeDetailsPanelProps {
   node: Node | null
 }
 
+// Tipos para el rol del nodo en pagos
+type NodeRole = 'source' | 'target' | 'both' | 'none'
+
+interface ChannelInfo {
+  capacity: number
+  targetNodeId: string
+  sourceNodeId: string
+}
+
 function NodeDetailsPanel({ node }: NodeDetailsPanelProps) {
-  const { setNodes } = useReactFlow()
-  const { addXP, missionCounter } = useMissionStore()
+  const { setNodes, getEdges } = useReactFlow()
+  const { addXP, missionCounter, xp } = useMissionStore()
+  const { playXPGained } = useGameSounds()
   const [nombre, setNombre] = useState('')
   const [balance, setBalance] = useState(0)
   const [estado, setEstado] = useState<'activo' | 'inactivo'>('activo')
@@ -24,11 +36,57 @@ function NodeDetailsPanel({ node }: NodeDetailsPanelProps) {
   const [hasShownAdvanceMissionModal, setHasShownAdvanceMissionModal] = useState(false)
   const initialNombreRef = useRef('')
   const initialBalanceRef = useRef(0)
+  
+  // Estados para tabs y pagos
+  const [activeTab, setActiveTab] = useState(0)
+  const [nodeRole, setNodeRole] = useState<NodeRole>('none')
+  const [channelInfo, setChannelInfo] = useState<ChannelInfo | null>(null)
+  const [hasChannels, setHasChannels] = useState(false)
 
   // Extract node data (safe to access with optional chaining)
   const nodeLabel = (node?.data?.label as string) || 'Unknown'
   const isPlaceholder = node?.data?.isPlaceholder as boolean | undefined
   const isMission1XPActive = missionCounter === 0
+
+  // Detectar canales conectados al nodo
+  useEffect(() => {
+    if (!node) return
+    
+    const edges = getEdges()
+    const nodeChannels = edges.filter(edge => 
+      edge.source === node.id || edge.target === node.id
+    )
+    
+    setHasChannels(nodeChannels.length > 0)
+    
+    if (nodeChannels.length === 0) {
+      setNodeRole('none')
+      setChannelInfo(null)
+      return
+    }
+    
+    // Determinar el rol del nodo
+    const isSource = nodeChannels.some(edge => edge.source === node.id)
+    const isTarget = nodeChannels.some(edge => edge.target === node.id)
+    
+    if (isSource && isTarget) {
+      setNodeRole('both')
+    } else if (isSource) {
+      setNodeRole('source')
+    } else if (isTarget) {
+      setNodeRole('target')
+    }
+    
+    // Obtener info del canal (tomamos el primer canal por ahora)
+    const channel = nodeChannels[0]
+    if (channel?.data?.capacity) {
+      setChannelInfo({
+        capacity: channel.data.capacity as number,
+        sourceNodeId: channel.source,
+        targetNodeId: channel.target,
+      })
+    }
+  }, [node?.id, getEdges])
 
   useEffect(() => {
     if (!node || isPlaceholder) return
@@ -110,13 +168,14 @@ function NodeDetailsPanel({ node }: NodeDetailsPanelProps) {
   }
 
   const confirmNombreChange = () => {
-    if (hasChangedNombre) return
-
     const normalizedInitial = initialNombreRef.current.trim()
     const normalizedNew = nombre.trim()
-    if (normalizedNew.length > 0 && normalizedNew !== normalizedInitial) {
+    
+    // Solo dar XP la primera vez que cambia el nombre en Mission 1
+    if (!hasChangedNombre && normalizedNew.length > 0 && normalizedNew !== normalizedInitial) {
       if (isMission1XPActive) {
         addXP(30)
+        playXPGained()
       }
       setHasChangedNombre(true)
       setShowNameGuideModal(false)
@@ -128,21 +187,23 @@ function NodeDetailsPanel({ node }: NodeDetailsPanelProps) {
 
   const handleBalanceChange = (newBalance: number) => {
     setBalance(newBalance)
+    // Actualizar el nodo inmediatamente para que siempre sea editable
     updateNode({ balance: newBalance })
   }
 
   const confirmBalanceChange = () => {
-    if (hasChangedBalance) return
-
     const newBalance = balance
     if (!Number.isFinite(newBalance)) {
       return
     }
 
     const hasRealChange = newBalance > 0 && newBalance !== initialBalanceRef.current
-    if (hasRealChange) {
+    
+    // Solo dar XP la primera vez que cambia el balance en Mission 1
+    if (!hasChangedBalance && hasRealChange) {
       if (isMission1XPActive) {
         addXP(30)
+        playXPGained()
       }
       setHasChangedBalance(true)
       setShowBalanceGuideModal(false)
@@ -181,8 +242,18 @@ function NodeDetailsPanel({ node }: NodeDetailsPanelProps) {
         <Typography variant="caption" color="text.secondary">
           ID: {node.id}
         </Typography>
+        <Tabs
+          value={activeTab}
+          onChange={(_, v) => setActiveTab(v)}
+          sx={{ mt: 1, minHeight: 32, '& .MuiTab-root': { minHeight: 32, py: 0, fontSize: '0.8rem' } }}
+        >
+          <Tab label="Info" />
+          {hasChannels && <Tab label="Pagos" />}
+        </Tabs>
       </Box>
 
+      {activeTab === 0 && (
+      <>
       <Divider sx={{ borderColor: border.divider }} />
 
       <Stack spacing={2}>
@@ -457,6 +528,17 @@ function NodeDetailsPanel({ node }: NodeDetailsPanelProps) {
           </Typography>
         </Stack>
       </Stack>
+      </>
+      )}
+
+      {activeTab === 1 && hasChannels && (
+        <InvoiceTab 
+          nodeRole={nodeRole}
+          channelCapacity={channelInfo?.capacity || 0}
+          nodeId={node.id}
+          isMission3Active={xp >= 200}
+        />
+      )}
     </Box>
   )
 }
