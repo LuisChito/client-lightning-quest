@@ -233,8 +233,8 @@ function MapCanvasInner() {
 				data: { 
 					label: nodeName,
 					nombre: nodeName,
-					// El primer nodo del jugador arranca con saldo para permitir validación de canal.
-					balance: userNodesCount === 0 ? 100000 : 0,
+					// Todos los nodos del jugador arrancan con 100,000 sats
+					balance: 100000,
 					estado: 'activo' as const,
 					isPlaceholder: false 
 				},
