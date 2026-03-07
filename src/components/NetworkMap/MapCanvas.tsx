@@ -83,17 +83,19 @@ function MapCanvasInner() {
 		[setEdges],
 	)
 
-	const onPaneContextMenu = useCallback(
+	const onPaneClick = useCallback(
 		(event: React.MouseEvent) => {
-			event.preventDefault()
-			console.log('Clic derecho detectado')
+			console.log('=== CLICK EN PANE DETECTADO ===')
+			console.log('Event:', event)
+			console.log('Target:', event.target)
+			console.log('ClientX:', event.clientX, 'ClientY:', event.clientY)
 			
 			const position = screenToFlowPosition({
 				x: event.clientX,
 				y: event.clientY,
 			})
 			
-			console.log('Posición:', position)
+			console.log('Posición en flow:', position)
 
 			const newNode: Node = {
 				id: `node-${Date.now()}`,
@@ -102,19 +104,21 @@ function MapCanvasInner() {
 				position,
 			}
 
-			console.log('Creando nodo:', newNode)
+			console.log('Nodo a crear:', newNode)
 
 			// Si es el primer nodo creado, eliminar los placeholders
 			if (!hasCreatedNode) {
-				console.log('Primer nodo - eliminando placeholders')
+				console.log('>>> PRIMER NODO - ELIMINANDO PLACEHOLDERS')
 				setNodes([newNode])
 				setEdges([])
 				setHasCreatedNode(true)
 			} else {
-				console.log('Agregando nodo adicional')
+				console.log('>>> AGREGANDO NODO ADICIONAL')
 				setNodes((nds) => {
 					const userNodes = nds.filter(n => !n.data?.isPlaceholder)
-					return [...userNodes, { ...newNode, data: { label: `node-${userNodes.length + 1}`, isPlaceholder: false } }]
+					const newLabel = `node-${userNodes.length + 1}`
+					console.log('Nuevo label:', newLabel)
+					return [...userNodes, { ...newNode, data: { label: newLabel, isPlaceholder: false } }]
 				})
 			}
 		},
@@ -135,7 +139,7 @@ function MapCanvasInner() {
 					textTransform: 'uppercase',
 				}}
 			>
-				Network Area (Clic derecho para crear nodo)
+				Network Area (Click en espacio vacío para crear nodo)
 			</Typography>
 
 			<ReactFlow
@@ -144,12 +148,17 @@ function MapCanvasInner() {
 				onNodesChange={onNodesChange}
 				onEdgesChange={onEdgesChange}
 				onConnect={onConnect}
-				onPaneContextMenu={onPaneContextMenu}
+				onPaneClick={onPaneClick}
 				nodeTypes={nodeTypes}
 				edgeTypes={edgeTypes}
 				proOptions={{ hideAttribution: true }}
 				defaultEdgeOptions={{ type: 'channelEdge' }}
 				connectionLineStyle={{ stroke: lightning.primary, strokeWidth: 2.2 }}
+				zoomOnDoubleClick={false}
+				selectNodesOnDrag={true}
+				panOnDrag={[1, 2]}
+				minZoom={0.5}
+				maxZoom={2}
 			>
 				<Background color={canvas.background} gap={38} variant={BackgroundVariant.Lines} />
 			</ReactFlow>
