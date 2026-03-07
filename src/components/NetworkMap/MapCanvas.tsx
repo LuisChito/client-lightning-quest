@@ -4,7 +4,6 @@ import {
 	Background,
 	BackgroundVariant,
 	ReactFlow,
-	ReactFlowProvider,
 	useEdgesState,
 	useNodesState,
 	useReactFlow,
@@ -191,6 +190,7 @@ function MapCanvasInner() {
 function MapCanvas() {
 	return (
 		<Box
+			id="network-map-canvas"
 			sx={{
 				position: 'relative',
 				height: '100%',
@@ -201,9 +201,7 @@ function MapCanvas() {
 				overflow: 'hidden',
 			}}
 		>
-			<ReactFlowProvider>
-				<MapCanvasInner />
-			</ReactFlowProvider>
+			<MapCanvasInner />
 		</Box>
 	)
 }

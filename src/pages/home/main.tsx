@@ -1,4 +1,5 @@
 import { Box, Container, Paper, Modal, Typography, Stack, Button, IconButton } from '@mui/material'
+import { ReactFlowProvider } from '@xyflow/react'
 import { border, background, lightning, text } from '../../theme/colors'
 import { useState, useEffect } from 'react'
 import CloseIcon from '@mui/icons-material/Close'
@@ -110,10 +111,12 @@ function HomePage() {
                 overflow: 'hidden',
               }}
             >
-              <Box sx={{ position: 'relative', minHeight: 0 }}>
-                <MapCanvas />
-                <CanvasViewportControls />
-              </Box>
+              <ReactFlowProvider>
+                <Box sx={{ position: 'relative', minHeight: 0 }}>
+                  <MapCanvas />
+                  <CanvasViewportControls />
+                </Box>
+              </ReactFlowProvider>
               <NodeDetailsPanel />
             </Box>
           </Box>

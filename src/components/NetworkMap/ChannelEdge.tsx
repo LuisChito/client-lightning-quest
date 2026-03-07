@@ -1,5 +1,5 @@
 import { BaseEdge, EdgeLabelRenderer, type EdgeProps, getBezierPath } from '@xyflow/react'
-import { lightning, background, text } from '../../theme/colors'
+import { lightning, background } from '../../theme/colors'
 
 function ChannelEdge(props: EdgeProps) {
 	const [edgePath, labelX, labelY] = getBezierPath({
