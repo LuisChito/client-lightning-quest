@@ -3,6 +3,7 @@ import type { Node, Edge } from '@xyflow/react'
 interface GameProgress {
   sessionId: string
   playerName: string
+  missionCounter: number
   nodes: Node[]
   edges: Edge[]
   hasCreatedNode: boolean
@@ -41,6 +42,7 @@ export const saveGameProgress = (progress: Partial<GameProgress>): void => {
   const updatedProgress: GameProgress = {
     sessionId,
     playerName,
+    missionCounter: progress.missionCounter ?? currentProgress?.missionCounter ?? 0,
     nodes: progress.nodes || currentProgress?.nodes || [],
     edges: progress.edges || currentProgress?.edges || [],
     hasCreatedNode: progress.hasCreatedNode ?? currentProgress?.hasCreatedNode ?? false,
@@ -79,6 +81,15 @@ export const loadGameProgress = (): GameProgress | null => {
 
 // Resetear todo el progreso
 export const resetGameProgress = (): void => {
+  const unlockKeys: string[] = []
+  for (let i = 0; i < localStorage.length; i += 1) {
+    const key = localStorage.key(i)
+    if (key && key.startsWith('mission2-unlock-modal-shown:')) {
+      unlockKeys.push(key)
+    }
+  }
+
+  unlockKeys.forEach((key) => localStorage.removeItem(key))
   localStorage.removeItem(STORAGE_KEY)
   localStorage.removeItem('currentSessionId')
   localStorage.removeItem('playerName')

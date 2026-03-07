@@ -3,15 +3,20 @@ import { ReactFlowProvider } from '@xyflow/react'
 import { border, background, lightning, text } from '../../theme/colors'
 import { useState, useEffect } from 'react'
 import CloseIcon from '@mui/icons-material/Close'
-import MapCanvas from '../../features/missions/mission1/canvas/Mission1MapCanvas'
+import Mission1MapCanvas from '../../features/missions/mission1/canvas/Mission1MapCanvas'
+import Mission2MapCanvas from '../../features/missions/mission2/canvas/Mission2MapCanvas'
 import AppTopBar from './components/AppTopBar/main'
-import CanvasViewportControls from '../../features/missions/mission1/components/Mission1ViewportControls'
-import NodeDetailsPanel from '../../features/missions/mission1/components/Mission1NodeDetailsPanel'
-import NodeSessionBar from '../../features/missions/mission1/components/Mission1NodeSessionBar'
+import Mission1ViewportControls from '../../features/missions/mission1/components/Mission1ViewportControls'
+import Mission2ViewportControls from '../../features/missions/mission2/components/Mission2ViewportControls'
+import Mission1NodeDetailsPanel from '../../features/missions/mission1/components/Mission1NodeDetailsPanel'
+import Mission2NodeDetailsPanel from '../../features/missions/mission2/components/Mission2NodeDetailsPanel'
+import Mission1NodeSessionBar from '../../features/missions/mission1/components/Mission1NodeSessionBar'
+import Mission2NodeSessionBar from '../../features/missions/mission2/components/Mission2NodeSessionBar'
 import LightningNetworkAnimation from '../../components/LightningNetworkAnimation'
 import AIAssistant from '../../components/AI/AIAssistant'
 import { loadGameProgress, saveGameProgress } from '../../features/missions/shared/services/missionProgress.service'
-import { useNetworkStore } from '../../features/missions/mission1/store/useNetworkStore'
+import { useNetworkStore as useMission1NetworkStore } from '../../features/missions/mission1/store/useNetworkStore'
+import { useNetworkStore as useMission2NetworkStore } from '../../features/missions/mission2/store/useNetworkStore'
 import { useMissionStore } from '../../features/missions/shared/store/useMissionStore'
 import { useGameSounds } from '../../hooks/useGameSounds'
 
@@ -20,9 +25,17 @@ function HomePage() {
   const [openSecondModal, setOpenSecondModal] = useState(false)
   const [openThirdModal, setOpenThirdModal] = useState(false)
   const [playerName, setPlayerName] = useState('')
-  const { selectedNode } = useNetworkStore()
-  const { loadProgress } = useMissionStore()
+  const { selectedNode: mission1SelectedNode } = useMission1NetworkStore()
+  const { selectedNode: mission2SelectedNode } = useMission2NetworkStore()
+  const { currentMission, loadProgress } = useMissionStore()
   const { playModalClose, playSpaceEffect, playBubblePop } = useGameSounds()
+
+  const isMission2Active = currentMission?.id === 'create-destination-and-channel'
+  const ActiveMapCanvas = isMission2Active ? Mission2MapCanvas : Mission1MapCanvas
+  const ActiveViewportControls = isMission2Active ? Mission2ViewportControls : Mission1ViewportControls
+  const ActiveNodeDetailsPanel = isMission2Active ? Mission2NodeDetailsPanel : Mission1NodeDetailsPanel
+  const ActiveNodeSessionBar = isMission2Active ? Mission2NodeSessionBar : Mission1NodeSessionBar
+  const selectedNode = isMission2Active ? mission2SelectedNode : mission1SelectedNode
 
   useEffect(() => {
     const name = localStorage.getItem('playerName')
@@ -33,7 +46,7 @@ function HomePage() {
       const savedProgress = loadGameProgress()
       if (savedProgress) {
         // Cargar XP y misiones completadas
-        loadProgress(savedProgress.xp || 0, savedProgress.completedMissions || [])
+        loadProgress(savedProgress.xp || 0, savedProgress.missionCounter || 0, savedProgress.completedMissions || [])
         console.log('✅ Progreso cargado:', {
           xp: savedProgress.xp,
           misiones: savedProgress.completedMissions,
@@ -48,6 +61,8 @@ function HomePage() {
           setOpenWelcomeModal(true)
         }
       } else {
+        // Importante: reiniciar store en memoria cuando no hay progreso guardado.
+        loadProgress(0, 0, [])
         // Primera vez, mostrar modales
         playBubblePop()
         setOpenWelcomeModal(true)
@@ -126,7 +141,7 @@ function HomePage() {
         >
           <Box sx={{ display: 'grid', gap: 1, height: '100%', minHeight: 0, gridTemplateRows: 'auto auto 1fr auto' }}>
             <AppTopBar />
-            <NodeSessionBar />
+            <ActiveNodeSessionBar />
 
             <Box
               sx={{
@@ -142,10 +157,10 @@ function HomePage() {
             >
               <ReactFlowProvider>
                 <Box sx={{ position: 'relative', minHeight: 0 }}>
-                  <MapCanvas />
-                  <CanvasViewportControls />
+                  <ActiveMapCanvas />
+                  <ActiveViewportControls />
                 </Box>
-                <NodeDetailsPanel node={selectedNode} />
+                <ActiveNodeDetailsPanel node={selectedNode} />
               </ReactFlowProvider>
             </Box>
           </Box>
