@@ -20,6 +20,7 @@ import { background, border, lightning, canvas } from '../../theme/colors'
 import ChannelEdge from './ChannelEdge'
 import NodeItem from './NodeItem'
 import { loadGameProgress, saveGameProgress } from '../../utils/gameProgress'
+import { useNetworkStore } from '../../store/useNetworkStore'
 
 const nodeTypes: NodeTypes = {
 	networkNode: NodeItem,
@@ -31,18 +32,106 @@ const edgeTypes: EdgeTypes = {
 
 const initialNodes: Node[] = [
 	// Nodo central (Hub principal)
-	{ id: 'lightning-hub', type: 'networkNode', data: { label: 'LN-Hub', isPlaceholder: true }, position: { x: 400, y: 300 } },
+	{ 
+		id: 'lightning-hub', 
+		type: 'networkNode', 
+		data: { 
+			label: 'LN-Hub', 
+			nombre: 'LN-Hub',
+			balance: 5000000,
+			estado: 'activo' as const,
+			isPlaceholder: true 
+		}, 
+		position: { x: 400, y: 300 } 
+	},
 	
 	// Nodos conectados al hub (nivel 1)
-	{ id: 'alice', type: 'networkNode', data: { label: 'Alice', isPlaceholder: true }, position: { x: 200, y: 150 } },
-	{ id: 'bob', type: 'networkNode', data: { label: 'Bob', isPlaceholder: true }, position: { x: 600, y: 150 } },
-	{ id: 'carol', type: 'networkNode', data: { label: 'Carol', isPlaceholder: true }, position: { x: 650, y: 450 } },
-	{ id: 'dave', type: 'networkNode', data: { label: 'Dave', isPlaceholder: true }, position: { x: 150, y: 450 } },
+	{ 
+		id: 'alice', 
+		type: 'networkNode', 
+		data: { 
+			label: 'Alice', 
+			nombre: 'Alice',
+			balance: 2000000,
+			estado: 'activo' as const,
+			isPlaceholder: true 
+		}, 
+		position: { x: 200, y: 150 } 
+	},
+	{ 
+		id: 'bob', 
+		type: 'networkNode', 
+		data: { 
+			label: 'Bob', 
+			nombre: 'Bob',
+			balance: 1500000,
+			estado: 'activo' as const,
+			isPlaceholder: true 
+		}, 
+		position: { x: 600, y: 150 } 
+	},
+	{ 
+		id: 'carol', 
+		type: 'networkNode', 
+		data: { 
+			label: 'Carol', 
+			nombre: 'Carol',
+			balance: 3000000,
+			estado: 'activo' as const,
+			isPlaceholder: true 
+		}, 
+		position: { x: 650, y: 450 } 
+	},
+	{ 
+		id: 'dave', 
+		type: 'networkNode', 
+		data: { 
+			label: 'Dave', 
+			nombre: 'Dave',
+			balance: 1495918,
+			estado: 'activo' as const,
+			isPlaceholder: true 
+		}, 
+		position: { x: 150, y: 450 } 
+	},
 	
 	// Nodos periféricos (nivel 2)
-	{ id: 'erin', type: 'networkNode', data: { label: 'Erin', isPlaceholder: true }, position: { x: 50, y: 250 } },
-	{ id: 'frank', type: 'networkNode', data: { label: 'Frank', isPlaceholder: true }, position: { x: 750, y: 250 } },
-	{ id: 'grace', type: 'networkNode', data: { label: 'Grace', isPlaceholder: true }, position: { x: 400, y: 550 } },
+	{ 
+		id: 'erin', 
+		type: 'networkNode', 
+		data: { 
+			label: 'Erin', 
+			nombre: 'Erin',
+			balance: 800000,
+			estado: 'activo' as const,
+			isPlaceholder: true 
+		}, 
+		position: { x: 50, y: 250 } 
+	},
+	{ 
+		id: 'frank', 
+		type: 'networkNode', 
+		data: { 
+			label: 'Frank', 
+			nombre: 'Frank',
+			balance: 1200000,
+			estado: 'activo' as const,
+			isPlaceholder: true 
+		}, 
+		position: { x: 750, y: 250 } 
+	},
+	{ 
+		id: 'grace', 
+		type: 'networkNode', 
+		data: { 
+			label: 'Grace', 
+			nombre: 'Grace',
+			balance: 900000,
+			estado: 'activo' as const,
+			isPlaceholder: true 
+		}, 
+		position: { x: 400, y: 550 } 
+	},
 ]
 
 const initialEdges: Edge[] = [
@@ -108,6 +197,7 @@ function MapCanvasInner() {
 	const [edges, setEdges, onEdgesChange] = useEdgesState(getInitialEdges())
 	const { screenToFlowPosition } = useReactFlow()
 	const [hasCreatedNode, setHasCreatedNode] = useState(getInitialHasCreatedNode())
+	const { setSelectedNode } = useNetworkStore()
 
 	// Guardar progreso cuando cambien los nodos o edges
 	useEffect(() => {
@@ -141,8 +231,18 @@ function MapCanvasInner() {
 		[setEdges],
 	)
 
+	const onNodeClick = useCallback(
+		(_event: React.MouseEvent, node: Node) => {
+			setSelectedNode(node)
+		},
+		[setSelectedNode],
+	)
+
 	const onPaneClick = useCallback(
 		(event: React.MouseEvent) => {
+			// Limpiar selección al hacer click en el pane vacío
+			setSelectedNode(null)
+
 			if (event.detail < 2) {
 				return
 			}
@@ -152,10 +252,19 @@ function MapCanvasInner() {
 				y: event.clientY,
 			})
 
+			const nodeNumber = hasCreatedNode ? nodes.filter(n => !n.data?.isPlaceholder).length + 1 : 1
+			const nodeName = `node-${nodeNumber}`
+
 			const newNode: Node = {
 				id: `node-${Date.now()}`,
 				type: 'networkNode',
-				data: { label: `node-1`, isPlaceholder: false },
+				data: { 
+					label: nodeName,
+					nombre: nodeName,
+					balance: 0,
+					estado: 'activo' as const,
+					isPlaceholder: false 
+				},
 				position,
 			}
 
@@ -167,12 +276,11 @@ function MapCanvasInner() {
 			} else {
 				setNodes((nds) => {
 					const userNodes = nds.filter(n => !n.data?.isPlaceholder)
-					const newLabel = `node-${userNodes.length + 1}`
-					return [...userNodes, { ...newNode, data: { label: newLabel, isPlaceholder: false } }]
+					return [...userNodes, newNode]
 				})
 			}
 		},
-		[screenToFlowPosition, hasCreatedNode, setNodes, setEdges],
+		[screenToFlowPosition, hasCreatedNode, setNodes, setEdges, setSelectedNode, nodes],
 	)
 
 	return (
@@ -199,6 +307,7 @@ function MapCanvasInner() {
 				onNodesChange={onNodesChange}
 				onEdgesChange={onEdgesChange}
 				onConnect={onConnect}
+				onNodeClick={onNodeClick}
 				onPaneClick={onPaneClick}
 				nodeTypes={nodeTypes}
 				edgeTypes={edgeTypes}

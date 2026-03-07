@@ -10,12 +10,14 @@ import NodeDetailsPanel from './components/NodeDetailsPanel/main'
 import NodeSessionBar from './components/NodeSessionBar/main'
 import LightningNetworkAnimation from '../../components/LightningNetworkAnimation'
 import { loadGameProgress, saveGameProgress } from '../../utils/gameProgress'
+import { useNetworkStore } from '../../store/useNetworkStore'
 
 function HomePage() {
   const [openWelcomeModal, setOpenWelcomeModal] = useState(false)
   const [openSecondModal, setOpenSecondModal] = useState(false)
   const [openThirdModal, setOpenThirdModal] = useState(false)
   const [playerName, setPlayerName] = useState('')
+  const { selectedNode } = useNetworkStore()
 
   useEffect(() => {
     const name = localStorage.getItem('playerName')
@@ -104,8 +106,10 @@ function HomePage() {
             <Box
               sx={{
                 display: 'grid',
-                gridTemplateColumns: { xs: '1fr', lg: '1fr 300px' },
-                gridTemplateRows: { xs: '1fr auto', lg: '1fr' },
+                gridTemplateColumns: selectedNode 
+                  ? { xs: '1fr 250px', sm: '1fr 280px', lg: '1fr 300px' } 
+                  : '1fr',
+                gridTemplateRows: '1fr',
                 gap: 1,
                 minHeight: 0,
                 overflow: 'hidden',
@@ -116,8 +120,8 @@ function HomePage() {
                   <MapCanvas />
                   <CanvasViewportControls />
                 </Box>
+                <NodeDetailsPanel node={selectedNode} />
               </ReactFlowProvider>
-              <NodeDetailsPanel />
             </Box>
           </Box>
         </Paper>
