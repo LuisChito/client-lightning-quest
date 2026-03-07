@@ -8,6 +8,7 @@ import CanvasViewportControls from './components/CanvasViewportControls/main'
 import NodeDetailsPanel from './components/NodeDetailsPanel/main'
 import NodeSessionBar from './components/NodeSessionBar/main'
 import LightningNetworkAnimation from '../../components/LightningNetworkAnimation'
+import { loadGameProgress, saveGameProgress } from '../../utils/gameProgress'
 
 function HomePage() {
   const [openWelcomeModal, setOpenWelcomeModal] = useState(false)
@@ -19,7 +20,16 @@ function HomePage() {
     const name = localStorage.getItem('playerName')
     if (name) {
       setPlayerName(name)
-      setOpenWelcomeModal(true)
+      
+      // Verificar si ya completó los modales
+      const savedProgress = loadGameProgress()
+      if (savedProgress && savedProgress.modalsCompleted) {
+        // No mostrar modales si ya los completó
+        console.log('Modales ya completados, cargando progreso...')
+      } else {
+        // Mostrar modales de bienvenida
+        setOpenWelcomeModal(true)
+      }
     }
   }, [])
 
@@ -59,6 +69,10 @@ function HomePage() {
 
   const handleCloseThirdModal = () => {
     setOpenThirdModal(false)
+    // Guardar que los modales fueron completados
+    saveGameProgress({
+      modalsCompleted: true,
+    })
   }
 
   return (

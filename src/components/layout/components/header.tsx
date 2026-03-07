@@ -1,10 +1,12 @@
 import GitHubIcon from '@mui/icons-material/GitHub'
 import OpenInNewRoundedIcon from '@mui/icons-material/OpenInNewRounded'
-import { AppBar, Box, Button, Chip, Container, IconButton, Menu, MenuItem, Stack, Toolbar, Typography } from '@mui/material'
+import LogoutIcon from '@mui/icons-material/Logout'
+import { AppBar, Box, Button, Chip, Container, IconButton, Menu, MenuItem, Stack, Toolbar, Typography, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material'
 import { useState } from 'react'
 import type { MouseEvent } from 'react'
-import { NavLink } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
 import { lightning, background, border } from '../../../theme/colors'
+import { resetGameProgress } from '../../../utils/gameProgress'
 
 
 const navButtonSx = {
@@ -18,6 +20,8 @@ const navButtonSx = {
 
 function Header() {
 	const [repoMenuAnchor, setRepoMenuAnchor] = useState<null | HTMLElement>(null)
+	const [openResetDialog, setOpenResetDialog] = useState(false)
+	const navigate = useNavigate()
 
 	const openRepoMenu = (event: MouseEvent<HTMLElement>) => {
 		setRepoMenuAnchor(event.currentTarget)
@@ -25,6 +29,20 @@ function Header() {
 
 	const closeRepoMenu = () => {
 		setRepoMenuAnchor(null)
+	}
+
+	const handleOpenResetDialog = () => {
+		setOpenResetDialog(true)
+	}
+
+	const handleCloseResetDialog = () => {
+		setOpenResetDialog(false)
+	}
+
+	const handleConfirmReset = () => {
+		resetGameProgress()
+		setOpenResetDialog(false)
+		navigate('/')
 	}
 
 	return (
@@ -73,8 +91,21 @@ function Header() {
 						</Button>
 						<Button component={NavLink} to="/pagos" color="inherit" sx={navButtonSx}>
 							Pagos
-						</Button>
-						<IconButton color="inherit" aria-label="repositorios" onClick={openRepoMenu}>
+						</Button>					<Button
+						color="inherit"
+						onClick={handleOpenResetDialog}
+						startIcon={<LogoutIcon />}
+						sx={{
+							textTransform: 'none',
+							color: 'error.main',
+							'&:hover': {
+								backgroundColor: 'error.light',
+								color: 'error.dark',
+							},
+						}}
+					>
+						Salir
+					</Button>						<IconButton color="inherit" aria-label="repositorios" onClick={openRepoMenu}>
 							<GitHubIcon />
 						</IconButton>
 						<Menu
@@ -103,6 +134,49 @@ function Header() {
 						</Menu>
 				</Toolbar>
 			</Container>
+
+			{/* Diálogo de confirmación para resetear progreso */}
+			<Dialog
+				open={openResetDialog}
+				onClose={handleCloseResetDialog}
+				PaperProps={{
+					sx: {
+						border: `1px solid ${border.medium}`,
+						backgroundColor: background.secondary,
+						borderRadius: 2,
+					},
+				}}
+			>
+				<DialogTitle sx={{ fontWeight: 600 }}>
+					¿Salir del juego?
+				</DialogTitle>
+				<DialogContent>
+					<Typography variant="body2" sx={{ mb: 1 }}>
+						Se eliminará todo tu progreso:
+					</Typography>
+					<Stack spacing={0.5} sx={{ ml: 2 }}>
+						<Typography variant="body2">• Nodos creados</Typography>
+						<Typography variant="body2">• Canales abiertos</Typography>
+						<Typography variant="body2">• Progreso del tutorial</Typography>
+					</Stack>
+					<Typography variant="body2" sx={{ mt: 2, fontWeight: 600 }}>
+						¿Estás seguro de que quieres volver a empezar?
+					</Typography>
+				</DialogContent>
+				<DialogActions sx={{ px: 3, pb: 2 }}>
+					<Button onClick={handleCloseResetDialog} variant="outlined">
+						Cancelar
+					</Button>
+					<Button
+						onClick={handleConfirmReset}
+						variant="contained"
+						color="error"
+						startIcon={<LogoutIcon />}
+					>
+						Sí, salir
+					</Button>
+				</DialogActions>
+			</Dialog>
 		</AppBar>
 	)
 }

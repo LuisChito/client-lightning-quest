@@ -14,11 +14,12 @@ import {
 	type Node,
 	type NodeTypes,
 } from '@xyflow/react'
-import { useCallback, useState } from 'react'
+import { useCallback, useState, useEffect } from 'react'
 import '@xyflow/react/dist/style.css'
 import { background, border, lightning, canvas } from '../../theme/colors'
 import ChannelEdge from './ChannelEdge'
 import NodeItem from './NodeItem'
+import { loadGameProgress, saveGameProgress } from '../../utils/gameProgress'
 
 const nodeTypes: NodeTypes = {
 	networkNode: NodeItem,
@@ -62,11 +63,44 @@ const initialEdges: Edge[] = [
 	{ id: 'erin-dave', source: 'erin', target: 'dave', type: 'channelEdge' },
 ]
 
+// Función para obtener nodos iniciales (desde localStorage o por defecto)
+const getInitialNodes = (): Node[] => {
+	const savedProgress = loadGameProgress()
+	if (savedProgress && savedProgress.nodes.length > 0) {
+		return savedProgress.nodes
+	}
+	return initialNodes
+}
+
+// Función para obtener edges iniciales (desde localStorage o por defecto)
+const getInitialEdges = (): Edge[] => {
+	const savedProgress = loadGameProgress()
+	if (savedProgress && savedProgress.edges.length > 0) {
+		return savedProgress.edges
+	}
+	return initialEdges
+}
+
+// Función para obtener el estado inicial de hasCreatedNode
+const getInitialHasCreatedNode = (): boolean => {
+	const savedProgress = loadGameProgress()
+	return savedProgress?.hasCreatedNode ?? false
+}
+
 function MapCanvasInner() {
-	const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
-	const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
+	const [nodes, setNodes, onNodesChange] = useNodesState(getInitialNodes())
+	const [edges, setEdges, onEdgesChange] = useEdgesState(getInitialEdges())
 	const { screenToFlowPosition } = useReactFlow()
-	const [hasCreatedNode, setHasCreatedNode] = useState(false)
+	const [hasCreatedNode, setHasCreatedNode] = useState(getInitialHasCreatedNode())
+
+	// Guardar progreso cuando cambien los nodos o edges
+	useEffect(() => {
+		saveGameProgress({
+			nodes,
+			edges,
+			hasCreatedNode,
+		})
+	}, [nodes, edges, hasCreatedNode])
 
 	const onConnect = useCallback(
 		(connection: Connection) => {
@@ -85,17 +119,10 @@ function MapCanvasInner() {
 
 	const onPaneClick = useCallback(
 		(event: React.MouseEvent) => {
-			console.log('=== CLICK EN PANE DETECTADO ===')
-			console.log('Event:', event)
-			console.log('Target:', event.target)
-			console.log('ClientX:', event.clientX, 'ClientY:', event.clientY)
-			
 			const position = screenToFlowPosition({
 				x: event.clientX,
 				y: event.clientY,
 			})
-			
-			console.log('Posición en flow:', position)
 
 			const newNode: Node = {
 				id: `node-${Date.now()}`,
@@ -104,20 +131,15 @@ function MapCanvasInner() {
 				position,
 			}
 
-			console.log('Nodo a crear:', newNode)
-
 			// Si es el primer nodo creado, eliminar los placeholders
 			if (!hasCreatedNode) {
-				console.log('>>> PRIMER NODO - ELIMINANDO PLACEHOLDERS')
 				setNodes([newNode])
 				setEdges([])
 				setHasCreatedNode(true)
 			} else {
-				console.log('>>> AGREGANDO NODO ADICIONAL')
 				setNodes((nds) => {
 					const userNodes = nds.filter(n => !n.data?.isPlaceholder)
 					const newLabel = `node-${userNodes.length + 1}`
-					console.log('Nuevo label:', newLabel)
 					return [...userNodes, { ...newNode, data: { label: newLabel, isPlaceholder: false } }]
 				})
 			}
