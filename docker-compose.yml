@@ -1,0 +1,33 @@
+services:
+  # Servicio de desarrollo
+  app-dev:
+    container_name: lightning-quest-dev
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    volumes:
+      # Montar código fuente para hot reload
+      - .:/app
+      # Evitar montar node_modules (usar los del contenedor)
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - VITE_HOST=0.0.0.0
+    command: npm run dev
+    stdin_open: true
+    tty: true
+
+  # Servicio de producción (opcional)
+  app-prod:
+    container_name: lightning-quest-prod
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    ports:
+      - "8080:80"
+    environment:
+      - NODE_ENV=production
+    profiles:
+      - production

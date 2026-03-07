@@ -1,73 +1,112 @@
-# React + TypeScript + Vite
+# ⚡ Lightning Quest - Cliente Web
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Juego educativo interactivo sobre Lightning Network construido con React, TypeScript y Vite.
 
-Currently, two official plugins are available:
+## 🚀 Inicio Rápido
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### Opción 1: Docker (Recomendado) 🐳
 
-## React Compiler
+**Desarrollo con hot reload:**
+```bash
+docker-compose up app-dev
+```
+Accede en: http://localhost:5173
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+**Producción:**
+```bash
+docker-compose --profile production up app-prod
+```
+Accede en: http://localhost:8080
 
-## Expanding the ESLint configuration
+📖 **[Ver documentación completa de Docker](DOCKER_README.md)**
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Opción 2: Local
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+**Requisitos:**
+- Node.js 20+
+- npm
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+**Instalación:**
+```bash
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+**Desarrollo:**
+```bash
+npm run dev
 ```
+
+**Build:**
+```bash
+npm run build
+```
+
+**Preview:**
+```bash
+npm run preview
+```
+
+## 📦 Tecnologías
+
+- **React 19** - UI Library
+- **TypeScript** - Type Safety
+- **Vite** - Build Tool
+- **Material-UI** - Component Library
+- **React Flow** - Network Visualization
+- **Framer Motion** - Animations
+- **Zustand** - State Management
+- **React Router** - Routing
+
+## 🏗️ Estructura del Proyecto
+
+```
+src/
+├── api/              # Servicios API
+├── application/      # Routing
+├── components/       # Componentes reutilizables
+├── hooks/            # Custom hooks
+├── pages/            # Páginas de la aplicación
+├── store/            # Estado global (Zustand)
+├── theme/            # Colores y diseño
+├── types/            # Tipos TypeScript
+└── utils/            # Utilidades
+```
+
+## 🐳 Docker
+
+Este proyecto está completamente dockerizado con soporte para:
+
+✅ **Hot reload** en desarrollo  
+✅ **Build optimizado** para producción con nginx  
+✅ **Multi-stage builds**  
+✅ **Configuración lista para deploy**  
+
+Ver [DOCKER_README.md](DOCKER_README.md) para más detalles.
+
+## 📝 Scripts Disponibles
+
+- `npm run dev` - Servidor de desarrollo
+- `npm run build` - Build de producción
+- `npm run preview` - Preview del build
+- `npm run lint` - Linter ESLint
+
+## 🔧 Configuración
+
+### Vite
+
+El proyecto usa Vite con configuración optimizada para Docker:
+- Hot reload con polling
+- Host configurado para contenedores
+- Alias de paths para imports limpios
+
+### ESLint
+
+Configuración estricta con reglas para React y TypeScript.
+
+## 📄 Licencia
+
+Este proyecto es de código abierto.
+
+---
+
+Desarrollado con ⚡ por el equipo Lightning Quest
