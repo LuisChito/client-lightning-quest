@@ -145,8 +145,6 @@ function MapCanvasInner() {
 	const showDoubleClickHint = modalsCompleted && userNodesCount < 2
 	const isCanvasLockedByModal =
 		showChannelEducation ||
-		showLevel3ReachedModal ||
-		showInvoiceExplanationModal ||
 		showChannelModal
 
 	// Reproducir sonido cuando sube el XP
