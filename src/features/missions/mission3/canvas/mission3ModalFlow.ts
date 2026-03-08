@@ -1,7 +1,11 @@
 const LEVEL3_MODAL_SEEN_KEY = 'mission3-level-modal-seen'
 
-export const canStartMission3ModalFlow = (xp: number, currentMissionId?: string | null): boolean => {
-  return xp === 200 && currentMissionId === 'create-invoice'
+export const canStartMission3ModalFlow = (
+  xp: number,
+  currentMissionId?: string | null,
+  hasCompletedFirstChannel: boolean = false,
+): boolean => {
+  return xp >= 200 && currentMissionId === 'create-invoice' && hasCompletedFirstChannel
 }
 
 export const hasSeenMission3ModalFlow = (): boolean => {

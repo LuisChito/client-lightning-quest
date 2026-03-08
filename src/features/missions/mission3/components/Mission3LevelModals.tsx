@@ -163,17 +163,30 @@ function Mission3LevelModals({
               boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
             }}
           >
+            <Box sx={{ display: 'flex', justifyContent: 'center', mb: 1.5 }}>
+              <Box
+                component="img"
+                src="/golden-character.png"
+                alt="Satoshi guia"
+                sx={{
+                  width: { xs: 120, md: 150 },
+                  height: 'auto',
+                  objectFit: 'contain',
+                  filter: 'drop-shadow(0 8px 16px rgba(245, 158, 11, 0.35))',
+                }}
+              />
+            </Box>
             <Typography
               variant="h6"
               sx={{ color: lightning.primary, fontWeight: 800, mb: 1.5, fontSize: '1.05rem' }}
             >
-              ¿Para que sirve un invoice?
+              Ahora genera el invoice
             </Typography>
             <Typography
               variant="body2"
               sx={{ color: 'rgba(0,0,0,0.87)', lineHeight: 1.75, mb: 2.25 }}
             >
-              El invoice sirve para generar una solicitud de satoshis y permitir que otro nodo te envie el pago.
+              Ahora genera el invoice para hacer una solicitud de satoshis.
             </Typography>
             <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
               <button

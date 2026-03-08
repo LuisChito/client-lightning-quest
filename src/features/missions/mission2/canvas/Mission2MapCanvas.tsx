@@ -134,6 +134,12 @@ function MapCanvasInner() {
 		onDestinationSelected,
 		closeAll: closeMission3ModalFlow,
 	} = useMission3Store()
+	const hasCompletedFirstChannel = completedMissions.includes('create-first-channel')
+	const isMission3InvoiceFlowEnabled = canStartMission3ModalFlow(
+		xp,
+		currentMission?.id,
+		hasCompletedFirstChannel,
+	)
 	
 	// Verificar si los modales fueron completados y mostrar hint
 	const savedProgress = loadGameProgress()
@@ -174,7 +180,7 @@ function MapCanvasInner() {
 
 	// Mostrar flujo de modales de Mission 3 cuando se llega al nivel 3
 	useEffect(() => {
-		if (!canStartMission3ModalFlow(xp, currentMission?.id)) {
+		if (!isMission3InvoiceFlowEnabled) {
 			return
 		}
 
@@ -184,7 +190,23 @@ function MapCanvasInner() {
 
 		startMission3ModalFlow()
 		markMission3ModalFlowSeen()
-	}, [xp, currentMission, startMission3ModalFlow])
+	}, [isMission3InvoiceFlowEnabled, startMission3ModalFlow])
+
+	useEffect(() => {
+		if (isMission3InvoiceFlowEnabled) {
+			return
+		}
+
+		if (showLevel3ReachedModal || showSelectDestinationModal || showInvoiceExplanationModal) {
+			closeMission3ModalFlow()
+		}
+	}, [
+		isMission3InvoiceFlowEnabled,
+		showLevel3ReachedModal,
+		showSelectDestinationModal,
+		showInvoiceExplanationModal,
+		closeMission3ModalFlow,
+	])
 
 	// Guardar progreso cuando cambien los nodos o edges (específico para Mission2)
 	useEffect(() => {
@@ -279,7 +301,7 @@ const handleChannelConfirm = useCallback(
 
 			setSelectedNode(node)
 
-			if (showSelectDestinationModal) {
+			if (isMission3InvoiceFlowEnabled && showSelectDestinationModal) {
 				const isPlaceholder = Boolean(node?.data?.isPlaceholder)
 				if (isPlaceholder) {
 					return
@@ -300,7 +322,16 @@ const handleChannelConfirm = useCallback(
 				}, 'mission2')
 			}
 		},
-		[setSelectedNode, showNodeClickHint, firstNodeId, isCanvasLockedByModal, showSelectDestinationModal, edges, onDestinationSelected],
+		[
+			setSelectedNode,
+			showNodeClickHint,
+			firstNodeId,
+			isCanvasLockedByModal,
+			isMission3InvoiceFlowEnabled,
+			showSelectDestinationModal,
+			edges,
+			onDestinationSelected,
+		],
 	)
 
 	const onPaneClick = useCallback(
@@ -1049,13 +1080,15 @@ const handleChannelConfirm = useCallback(
 				</Box>
 			)}
 
-			<Mission3LevelModals
-				showLevel3ReachedModal={showLevel3ReachedModal}
-				showSelectDestinationModal={showSelectDestinationModal}
-				showInvoiceExplanationModal={showInvoiceExplanationModal}
-				onContinueToSelectDestination={continueToSelectDestination}
-				onCloseInvoiceExplanationModal={closeMission3ModalFlow}
-			/>
+			{isMission3InvoiceFlowEnabled && (
+				<Mission3LevelModals
+					showLevel3ReachedModal={showLevel3ReachedModal}
+					showSelectDestinationModal={showSelectDestinationModal}
+					showInvoiceExplanationModal={showInvoiceExplanationModal}
+					onContinueToSelectDestination={continueToSelectDestination}
+					onCloseInvoiceExplanationModal={closeMission3ModalFlow}
+				/>
+			)}
 
 			{/* Bloquea interacción del canvas mientras haya modales abiertos */}
 			{isCanvasLockedByModal && (
