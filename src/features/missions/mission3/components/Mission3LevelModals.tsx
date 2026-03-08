@@ -5,18 +5,22 @@ interface Mission3LevelModalsProps {
   showLevel3ReachedModal: boolean
   showSelectDestinationModal: boolean
   showInvoiceExplanationModal: boolean
+  showSourceNodeAutofillModal: boolean
   onContinueToSelectDestination: () => void
   onCloseInvoiceExplanationModal: () => void
+  onCloseSourceNodeAutofillModal: () => void
 }
 
 function Mission3LevelModals({
   showLevel3ReachedModal,
   showSelectDestinationModal,
   showInvoiceExplanationModal,
+  showSourceNodeAutofillModal,
   onContinueToSelectDestination,
   onCloseInvoiceExplanationModal,
+  onCloseSourceNodeAutofillModal,
 }: Mission3LevelModalsProps) {
-  if (!showLevel3ReachedModal && !showSelectDestinationModal && !showInvoiceExplanationModal) {
+  if (!showLevel3ReachedModal && !showSelectDestinationModal && !showInvoiceExplanationModal && !showSourceNodeAutofillModal) {
     return null
   }
 
@@ -191,6 +195,74 @@ function Mission3LevelModals({
             <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
               <button
                 onClick={onCloseInvoiceExplanationModal}
+                style={{
+                  padding: '10px 24px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  backgroundColor: '#f59e0b',
+                  color: '#000',
+                  fontWeight: 700,
+                  fontSize: '0.9rem',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  boxShadow: '0 4px 12px rgba(245, 158, 11, 0.25)',
+                }}
+              >
+                Entendido
+              </button>
+            </Box>
+          </Box>
+        </Box>
+      )}
+
+      {showSourceNodeAutofillModal && (
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: 30,
+            transform: 'translateY(-50%)',
+            zIndex: 10,
+            maxWidth: 460,
+            animation: 'slideInLeft 0.45s ease-out',
+          }}
+        >
+          <Box
+            sx={{
+              p: 3,
+              borderRadius: 2,
+              backgroundColor: '#ffffff',
+              border: '1px solid rgba(0, 0, 0, 0.1)',
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+            }}
+          >
+            <Box sx={{ display: 'flex', justifyContent: 'center', mb: 1.5 }}>
+              <Box
+                component="img"
+                src="/skin2.png"
+                alt="Guia de pago"
+                sx={{
+                  width: { xs: 120, md: 150 },
+                  height: 'auto',
+                  objectFit: 'contain',
+                }}
+              />
+            </Box>
+            <Typography
+              variant="h6"
+              sx={{ color: lightning.primary, fontWeight: 800, mb: 1.5, fontSize: '1.05rem' }}
+            >
+              Copia el hash del invoice
+            </Typography>
+            <Typography
+              variant="body2"
+              sx={{ color: 'rgba(0,0,0,0.87)', lineHeight: 1.75, mb: 2.25 }}
+            >
+              Copia el payment request generado, selecciona el nodo destino y pegalo en Pagar Invoice.
+            </Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <button
+                onClick={onCloseSourceNodeAutofillModal}
                 style={{
                   padding: '10px 24px',
                   borderRadius: '8px',

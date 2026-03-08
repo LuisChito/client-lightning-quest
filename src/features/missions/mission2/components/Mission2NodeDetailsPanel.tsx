@@ -184,6 +184,32 @@ function NodeDetailsPanel({ node }: NodeDetailsPanelProps) {
     return new Intl.NumberFormat('en-US').format(sats)
   }
 
+  const handlePaymentSuccess = (amountSats: number) => {
+    if (!channelInfo || !node || amountSats <= 0) {
+      return
+    }
+
+    const destinationNodeId =
+      channelInfo.sourceNodeId === node.id ? channelInfo.targetNodeId : channelInfo.sourceNodeId
+
+    setNodes((nds) =>
+      nds.map((n) => {
+        if (n.id !== destinationNodeId) {
+          return n
+        }
+
+        const currentBalance = Number((n.data as { balance?: number } | undefined)?.balance ?? 0)
+        return {
+          ...n,
+          data: {
+            ...n.data,
+            balance: currentBalance + amountSats,
+          },
+        }
+      })
+    )
+  }
+
   // Debug - ver el estado de la misión
   console.log('🎯 XP actual:', xp)
   console.log('✏️ Has Changed Nombre:', hasChangedNombre)
@@ -431,7 +457,10 @@ function NodeDetailsPanel({ node }: NodeDetailsPanelProps) {
         nodeRole={nodeRole}
         channelCapacity={channelInfo?.capacity || 0}
         nodeId={node.id}
+        sourceNodeId={channelInfo?.sourceNodeId}
+        targetNodeId={channelInfo?.targetNodeId}
         isMission3Active={xp >= 200}
+        onPaymentSuccess={handlePaymentSuccess}
       />
     )}
     </Box>

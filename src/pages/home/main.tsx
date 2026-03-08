@@ -160,7 +160,7 @@ function HomePage() {
                   <ActiveMapCanvas />
                   <ActiveViewportControls />
                 </Box>
-                <ActiveNodeDetailsPanel node={selectedNode} />
+                <ActiveNodeDetailsPanel key={selectedNode?.id ?? 'no-node-selected'} node={selectedNode} />
               </ReactFlowProvider>
             </Box>
           </Box>

@@ -2,16 +2,29 @@
 import { Stack, Typography, TextField, Button, CircularProgress } from '@mui/material'
 import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlineRounded'
 import ErrorOutlineRoundedIcon from '@mui/icons-material/ErrorOutlineRounded'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { border, lightning, text } from '../../theme/colors'
 
 const API_URL = import.meta.env.VITE_API_BASE
 
-function PayInvoice() {
+interface PayInvoiceProps {
+  prefilledPaymentRequest?: string
+  onPaymentSuccess?: (amountSats: number) => void
+}
+
+function PayInvoice({ prefilledPaymentRequest = '', onPaymentSuccess }: PayInvoiceProps) {
   const [paymentRequest, setPaymentRequest] = useState('')
   const [result, setResult] = useState<{ status: string; amount_sats: number; memo: string; payment_hash: string } | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+
+  useEffect(() => {
+    if (!prefilledPaymentRequest) {
+      return
+    }
+
+    setPaymentRequest(prefilledPaymentRequest)
+  }, [prefilledPaymentRequest])
 
   const handlePay = async () => {
     if (!paymentRequest.trim()) return
@@ -24,7 +37,9 @@ function PayInvoice() {
         body: JSON.stringify({ payment_request: paymentRequest }),
       })
       if (!res.ok) throw new Error((await res.json()).detail || 'Error al pagar invoice')
-      setResult(await res.json())
+      const paymentResult = await res.json()
+      setResult(paymentResult)
+      onPaymentSuccess?.(paymentResult.amount_sats)
     } catch (e: any) {
       setError(e.message)
     } finally {

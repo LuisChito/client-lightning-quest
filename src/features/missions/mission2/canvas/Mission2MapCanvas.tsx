@@ -129,9 +129,11 @@ function MapCanvasInner() {
 		showLevel3ReachedModal,
 		showSelectDestinationModal,
 		showInvoiceExplanationModal,
+		showSourceNodeAutofillModal,
 		startFlow: startMission3ModalFlow,
 		continueToSelectDestination,
 		onDestinationSelected,
+		closeSourceNodeAutofillModal,
 		closeAll: closeMission3ModalFlow,
 	} = useMission3Store()
 	const hasCompletedFirstChannel = completedMissions.includes('create-first-channel')
@@ -197,7 +199,7 @@ function MapCanvasInner() {
 			return
 		}
 
-		if (showLevel3ReachedModal || showSelectDestinationModal || showInvoiceExplanationModal) {
+		if (showLevel3ReachedModal || showSelectDestinationModal || showInvoiceExplanationModal || showSourceNodeAutofillModal) {
 			closeMission3ModalFlow()
 		}
 	}, [
@@ -205,6 +207,7 @@ function MapCanvasInner() {
 		showLevel3ReachedModal,
 		showSelectDestinationModal,
 		showInvoiceExplanationModal,
+		showSourceNodeAutofillModal,
 		closeMission3ModalFlow,
 	])
 
@@ -1085,8 +1088,10 @@ const handleChannelConfirm = useCallback(
 					showLevel3ReachedModal={showLevel3ReachedModal}
 					showSelectDestinationModal={showSelectDestinationModal}
 					showInvoiceExplanationModal={showInvoiceExplanationModal}
+					showSourceNodeAutofillModal={showSourceNodeAutofillModal}
 					onContinueToSelectDestination={continueToSelectDestination}
 					onCloseInvoiceExplanationModal={closeMission3ModalFlow}
+					onCloseSourceNodeAutofillModal={closeSourceNodeAutofillModal}
 				/>
 			)}
 

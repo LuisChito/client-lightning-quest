@@ -9,9 +9,10 @@ const API_URL = import.meta.env.VITE_API_BASE
 
 interface CreateInvoiceProps {
   maxAmount?: number
+  onInvoiceCreated?: (paymentRequest: string) => void
 }
 
-function CreateInvoice({ maxAmount }: CreateInvoiceProps) {
+function CreateInvoice({ maxAmount, onInvoiceCreated }: CreateInvoiceProps) {
   const [amountSats, setAmountSats] = useState('')
   const [memo, setMemo] = useState('')
   const [invoice, setInvoice] = useState<{ payment_request: string; qr_base64: string; amount_sats: number; memo: string } | null>(null)
@@ -50,7 +51,9 @@ function CreateInvoice({ maxAmount }: CreateInvoiceProps) {
         body: JSON.stringify({ amount_sats: Number(amountSats), memo }),
       })
       if (!res.ok) throw new Error((await res.json()).detail || 'Error al crear invoice')
-      setInvoice(await res.json())
+      const createdInvoice = await res.json()
+      setInvoice(createdInvoice)
+      onInvoiceCreated?.(createdInvoice.payment_request)
     } catch (e: any) {
       setError(e.message)
     } finally {

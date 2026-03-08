@@ -3,8 +3,9 @@
     import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded'
     import ReceiptLongRoundedIcon from '@mui/icons-material/ReceiptLongRounded'
     import PaymentsRoundedIcon from '@mui/icons-material/PaymentsRounded'
-    import { useState } from 'react'
+    import { useEffect, useState } from 'react'
     import { border, background, lightning, text } from '../../theme/colors'
+    import { useMission3Store } from '../../features/missions/mission3/store/useMission3Store'
 
     import CreateInvoice from './CreateInvoice'
     import PayInvoice from './PayInvoice'
@@ -16,15 +17,64 @@
       nodeRole: NodeRole
       channelCapacity: number
       nodeId: string
+            sourceNodeId?: string
+            targetNodeId?: string
       isMission3Active?: boolean
+      onPaymentSuccess?: (amountSats: number) => void
     }
 
-    function InvoiceTab({ nodeRole, channelCapacity, nodeId, isMission3Active = false }: InvoiceTabProps) {
+        function InvoiceTab({ nodeRole, channelCapacity, nodeId, sourceNodeId, targetNodeId, isMission3Active = false, onPaymentSuccess }: InvoiceTabProps) {
     const [view, setView] = useState<InvoiceView>('menu')
+        const {
+            invoiceAutofillRequest,
+            invoiceAutofillSourceNodeId,
+            invoiceAutofillVersion,
+            startInvoiceAutofillFlow,
+            closeSourceNodeAutofillModal,
+        } = useMission3Store()
+        const [lastAutofillVersion, setLastAutofillVersion] = useState(0)
     
     // Determinar qué opciones mostrar según el rol
     const canCreateInvoice = nodeRole === 'target' || nodeRole === 'both'
     const canPayInvoice = nodeRole === 'source' || nodeRole === 'both'
+
+        useEffect(() => {
+            if (!invoiceAutofillRequest || !invoiceAutofillSourceNodeId) {
+                return
+            }
+
+            if (invoiceAutofillVersion === lastAutofillVersion) {
+                return
+            }
+
+            if (invoiceAutofillSourceNodeId !== nodeId) {
+                return
+            }
+
+            setView('pay')
+            setLastAutofillVersion(invoiceAutofillVersion)
+            closeSourceNodeAutofillModal()
+        }, [
+            invoiceAutofillRequest,
+            invoiceAutofillSourceNodeId,
+            invoiceAutofillVersion,
+            lastAutofillVersion,
+            nodeId,
+            closeSourceNodeAutofillModal,
+        ])
+
+        const handleInvoiceCreated = (paymentRequest: string) => {
+            const resolvedSourceNodeId = sourceNodeId && sourceNodeId !== nodeId
+                ? sourceNodeId
+                : targetNodeId && targetNodeId !== nodeId
+                    ? targetNodeId
+                    : null
+
+            if (!resolvedSourceNodeId) {
+                return
+            }
+            startInvoiceAutofillFlow(paymentRequest, resolvedSourceNodeId)
+        }
 
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, height: '100%' }}>
@@ -166,7 +216,7 @@
         {view === 'create' && (
         <>
             <Divider sx={{ borderColor: border.divider }} />
-            <CreateInvoice maxAmount={channelCapacity} />
+            <CreateInvoice maxAmount={channelCapacity} onInvoiceCreated={handleInvoiceCreated} />
         </>
         )}
 
@@ -174,7 +224,12 @@
         {view === 'pay' && (
         <>
             <Divider sx={{ borderColor: border.divider }} />
-            <PayInvoice />
+                        <PayInvoice
+                            prefilledPaymentRequest={
+                                invoiceAutofillSourceNodeId === nodeId ? invoiceAutofillRequest ?? '' : ''
+                            }
+                            onPaymentSuccess={onPaymentSuccess}
+                        />
         </>
         )}
 
