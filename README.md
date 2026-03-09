@@ -1,4 +1,4 @@
-# ⚡ Lightning Quest - Cliente Web
+# ⚡ lightning Game - Cliente Web
 
 Juego educativo interactivo sobre Lightning Network construido con React, TypeScript y Vite.
 
@@ -61,15 +61,14 @@ npm run preview
 
 ```
 src/
-├── api/              # Servicios API
 ├── application/      # Routing
 ├── components/       # Componentes reutilizables
+├── features/         # Lógica por misiones y módulos de dominio
 ├── hooks/            # Custom hooks
 ├── pages/            # Páginas de la aplicación
 ├── store/            # Estado global (Zustand)
 ├── theme/            # Colores y diseño
-├── types/            # Tipos TypeScript
-└── utils/            # Utilidades
+└── types/            # Tipos TypeScript
 ```
 
 ## 🐳 Docker
@@ -109,4 +108,36 @@ Este proyecto es de código abierto.
 
 ---
 
-Desarrollado con ⚡ por el equipo Lightning Quest
+## 🔌 API Backend
+
+Este cliente consume la API del proyecto:
+
+- https://github.com/ObedDM/lightning-ai-assistant
+
+La URL base se configura con variables de entorno de Vite.
+
+## 🌱 Variables de Entorno
+
+Usa un archivo `.env` (puedes partir desde `.env.example`).
+
+Ejemplo:
+
+```dotenv
+VITE_API_BASE=http://localhost:3000/api
+```
+
+Que significa este valor:
+
+- `VITE_API_BASE` es la URL base que usa el frontend para llamar al backend.
+- `http://localhost:3000` es el host y puerto donde corre la API en local.
+- `/api` es el prefijo de rutas del backend (por ejemplo, `http://localhost:3000/api/nodes`).
+
+Si despliegas la API en otro servidor, cambia este valor por la URL real, por ejemplo:
+
+```dotenv
+VITE_API_BASE=https://tu-backend.com/api
+```
+
+---
+
+Desarrollado con ⚡ por el equipo DivMid
